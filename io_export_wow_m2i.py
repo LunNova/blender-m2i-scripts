@@ -40,6 +40,14 @@ class CDataBinary:
 		return struct.unpack(This.Endianness + 'i', This.File.read(4))[0]
 	def ReadFloat32(This):
 		return struct.unpack(This.Endianness + 'f', This.File.read(4))[0]
+	def ReadNullterminatedString(This):
+		buf = ''
+		while True:
+			b = This.ReadUInt8()
+			if b is None or b == 0:
+				return buf
+			else:
+				buf = buf + chr(b)
 	def WriteUInt8(This, Value):
 		This.File.write(struct.pack(This.Endianness + 'B', Value))
 	def WriteSInt8(This, Value):
@@ -54,6 +62,9 @@ class CDataBinary:
 		This.File.write(struct.pack(This.Endianness + 'i', Value))
 	def WriteFloat32(This, Value):
 		This.File.write(struct.pack(This.Endianness + 'f', Value))
+	def WriteNullterminatedString(This, Value):
+		This.File.write(bytes(Value, 'UTF-8'))
+		This.WriteUInt8(0)
 
 class CMesh:
 	class CVertex:
@@ -76,6 +87,7 @@ class CMesh:
 	
 	def __init__(This):
 		This.ID = 0
+		This.Description = ''
 		This.VertexList = []
 		This.TriangleList = []
 		This.VertexDict = {}
@@ -153,8 +165,17 @@ def DoExport(FileName):
 	# extract meshes
 	for BMesh in BMeshList:
 		Mesh = CMesh()
-		Mesh.ID = int(BMesh.name[4:].split('.')[0])
-		
+		name = BMesh.name.split('.')[0]
+		parts = name.split('_')
+
+		id = int(parts[0][4:])
+		if len(parts) > 1:
+			Mesh.Description = parts[1]
+		else:
+			Mesh.Description = ''
+
+		Mesh.ID = id
+
 		for iFace, BFace in enumerate(BMesh.data.polygons):
 			FaceUVs = []
 			
@@ -269,13 +290,14 @@ def DoExport(FileName):
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
 	DataBinary.WriteUInt16(4)
-	DataBinary.WriteUInt16(5)
+	DataBinary.WriteUInt16(6)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
 	for Mesh in MeshList:
 		#DataBinary.WriteUInt32(Mesh.ID) #ID. Normally is a UInt16.
 		DataBinary.WriteUInt16(Mesh.ID)
+		DataBinary.WriteNullterminatedString(Mesh.Description)
 		DataBinary.WriteUInt16(0) # Level.
 		DataBinary.WriteUInt32(len(Mesh.VertexList))
 		

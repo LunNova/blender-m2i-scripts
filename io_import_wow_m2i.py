@@ -40,6 +40,14 @@ class CDataBinary:
 		return struct.unpack(This.Endianness + 'i', This.File.read(4))[0]
 	def ReadFloat32(This):
 		return struct.unpack(This.Endianness + 'f', This.File.read(4))[0]
+	def ReadNullterminatedString(This):
+		buf = ''
+		while True:
+			b = This.ReadUInt8()
+			if b is None or b == 0:
+				return buf
+			else:
+				buf = buf + chr(b)
 	def WriteUInt8(This, Value):
 		This.File.write(struct.pack(This.Endianness + 'B', Value))
 	def WriteSInt8(This, Value):
@@ -54,6 +62,9 @@ class CDataBinary:
 		This.File.write(struct.pack(This.Endianness + 'i', Value))
 	def WriteFloat32(This, Value):
 		This.File.write(struct.pack(This.Endianness + 'f', Value))
+	def WriteNullterminatedString(This, Value):
+		This.File.write(bytes(Value, 'UTF-8'))
+		This.WriteUInt8(0)
 
 class CMesh:
 	class CVertex:
@@ -72,6 +83,7 @@ class CMesh:
 	
 	def __init__(This):
 		This.ID = 0
+		This.Description = ''
 		This.VertexList = []
 		This.TriangleList = []
 
@@ -110,15 +122,23 @@ def DoImport(FileName):
 	# load header
 	SignatureIn = DataBinary.ReadUInt32()
 	if SignatureIn != MakeFourCC(b'M2I0'):
+		File.close()
 		return
 	VersionMajor = DataBinary.ReadUInt16()
 	VersionMinor = DataBinary.ReadUInt16()
+	
+	if VersionMajor != 4 or VersionMinor != 5 and VersionMinor != 6:
+		print('Unsupported M2I version')
+		File.close()
+		return
 	
 	# load mesh list
 	MeshCount = DataBinary.ReadUInt32()
 	for i in range(0, MeshCount):
 		Mesh = CMesh()
 		Mesh.ID = DataBinary.ReadUInt16()
+		if VersionMinor == 6:
+			Mesh.Description = DataBinary.ReadNullterminatedString()
 		Mesh.Level = DataBinary.ReadUInt16()
 		VertexCount = DataBinary.ReadUInt32()
 		
@@ -238,7 +258,11 @@ def DoImport(FileName):
 	for Mesh in MeshList:
 		bpy.ops.object.add(type = 'MESH', location = (0.0, 0.0, 0.0))
 		BMesh = bpy.context.object
-		BMesh.name = 'Mesh' + str('%04d' % Mesh.ID)
+		meshName = 'Mesh' + str('%04d' % Mesh.ID)
+		if Mesh.Description != '':
+			meshName = meshName + '_' + Mesh.Description
+		BMesh.name = meshName
+
 		BMeshData = BMesh.data
 		BMeshData.name = BMesh.name
 		BMeshData.vertices.add(len(Mesh.VertexList)) # add vertices to mesh data.
