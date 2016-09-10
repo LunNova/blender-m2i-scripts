@@ -102,6 +102,7 @@ class CAttachment:
 
 class CCamera:
 	def __init__(This):
+		This.ID = 0
 		This.Type = 0
 		This.FieldOfView = 0.7
 		This.ClipFar = 100.0
@@ -200,6 +201,7 @@ def DoImport(FileName):
 	CameraCount = DataBinary.ReadUInt32()
 	for i in range(0, CameraCount):
 		Camera = CCamera()
+		Camera.ID = i
 		Camera.Type = DataBinary.ReadSInt32()
 		Camera.FieldOfView = DataBinary.ReadFloat32()
 		Camera.ClipFar = DataBinary.ReadFloat32()
@@ -253,6 +255,32 @@ def DoImport(FileName):
 			#BAttachment.location.y -= Attachment.Position[0]
 			#BAttachment.location.z -= Attachment.Position[2]
 			BAttachment.empty_draw_size = 0.1
+
+	pi = 3.14159265			
+	# instantiate cameras
+	for Camera in CameraList:
+		bpy.ops.object.add(type = 'CAMERA', location = (0.0, 0.0, 0.0))
+		BCamera = bpy.context.object
+		BCamera.name = 'Camera' + str('%02d' % Camera.ID)
+		BCamera.location.x = -Camera.Position[1]
+		BCamera.location.y = Camera.Position[0]
+		BCamera.location.z = Camera.Position[2]
+		
+		BCamera.rotation_mode = 'XYZ'
+		BCamera.rotation_euler[0] = pi / 2
+		BCamera.rotation_euler[1] = 0
+		BCamera.rotation_euler[2] = pi
+		
+		BCamera.data.angle = Camera.FieldOfView
+		BCamera.data.clip_start = Camera.ClipNear
+		BCamera.data.clip_end = Camera.ClipFar
+		
+		BCamera['Type'] = Camera.Type
+		BCamera['TargetX'] = -Camera.Target[1]
+		BCamera['TargetY'] = Camera.Target[0]
+		BCamera['TargetZ'] = Camera.Target[2]
+		
+		BCamera.parent = BArmature
 	
 	# instantiate meshes
 	for Mesh in MeshList:

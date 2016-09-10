@@ -128,6 +128,7 @@ class CAttachment:
 
 class CCamera:
 	def __init__(This):
+		This.ID = 0
 		This.Type = 0
 		This.FieldOfView = 0.7
 		This.ClipFar = 100.0
@@ -278,8 +279,25 @@ def DoExport(FileName):
 		AttachmentList.append(Attachment)
 	
 	# extract cameras
-	
-	
+	for BCamera in BCameraList:
+		Camera = CCamera()
+
+		if 'Type' not in BCamera or 'TargetX' not in BCamera or 'TargetY' not in BCamera or 'TargetZ' not in BCamera:
+			continue
+
+		Camera.Type = BCamera['Type']
+		Camera.Position[0] = BCamera.location.y
+		Camera.Position[1] = -BCamera.location.x
+		Camera.Position[2] = BCamera.location.z
+		Camera.Target[0] = BCamera['TargetY']
+		Camera.Target[1] = -BCamera['TargetX']
+		Camera.Target[2] = BCamera['TargetZ']
+
+		Camera.FieldOfView = BCamera.data.angle
+		Camera.ClipNear = BCamera.data.clip_start
+		Camera.ClipFar = BCamera.data.clip_end
+
+		CameraList.append(Camera)
 	
 	BArmature.hide = isHidden
 	
