@@ -17,6 +17,9 @@ import struct
 def MakeFourCC(Value):
 	return struct.unpack('<I', Value)[0]
 
+def MakeVersion(Major, Minor):
+	return Major << 16 | Minor
+
 class EEndianness:
 	Native = '@'
 	Little = '<'
@@ -86,6 +89,9 @@ class CMesh:
 		This.Description = ''
 		This.VertexList = []
 		This.TriangleList = []
+		This.MaterialOverride = None
+		This.CustomTexture = ""
+		This.GlossTexture = ""
 
 class CBone:
 	def __init__(This):
@@ -127,19 +133,24 @@ def DoImport(FileName):
 		return
 	VersionMajor = DataBinary.ReadUInt16()
 	VersionMinor = DataBinary.ReadUInt16()
+	Version = MakeVersion(VersionMajor, VersionMinor)
 	
-	if VersionMajor != 4 or VersionMinor != 5 and VersionMinor != 6:
-		print('Unsupported M2I version')
+	if VersionMajor != 4 or VersionMinor < 5 and VersionMinor > 7:
 		File.close()
-		return
+		raise Exception('Unsupported M2I version ' + str("%d.%d") % (VersionMajor , VersionMinor))
 	
 	# load mesh list
 	MeshCount = DataBinary.ReadUInt32()
 	for i in range(0, MeshCount):
 		Mesh = CMesh()
 		Mesh.ID = DataBinary.ReadUInt16()
-		if VersionMinor == 6:
+		if Version >= MakeVersion(4, 6):
 			Mesh.Description = DataBinary.ReadNullterminatedString()
+		if Version >= MakeVersion(4, 7):
+			Mesh.MaterialOverride = DataBinary.ReadSInt16()
+			Mesh.CustomTexture = DataBinary.ReadNullterminatedString()
+			Mesh.GlossTexture = DataBinary.ReadNullterminatedString()
+		
 		Mesh.Level = DataBinary.ReadUInt16()
 		VertexCount = DataBinary.ReadUInt32()
 		
@@ -282,8 +293,9 @@ def DoImport(FileName):
 		
 		BCamera.parent = BArmature
 	
+	MeshResultNames = dict()
 	# instantiate meshes
-	for Mesh in MeshList:
+	for k, Mesh in enumerate(MeshList):
 		bpy.ops.object.add(type = 'MESH', location = (0.0, 0.0, 0.0))
 		BMesh = bpy.context.object
 		meshName = 'Mesh' + str('%04d' % Mesh.ID)
@@ -333,7 +345,21 @@ def DoImport(FileName):
 		BArmatureModifier.use_vertex_groups = True
 		BMesh.parent = BArmature
 		BMesh.select = False
-	
+		
+		BMesh['Description'] = Mesh.Description
+		BMesh['CustomTexture'] = Mesh.CustomTexture
+		BMesh['GlossTexture'] = Mesh.GlossTexture
+		if Mesh.MaterialOverride is None or Mesh.MaterialOverride < 0:
+			BMesh['MaterialOverride'] = ''
+		else:
+			BMesh['MaterialOverride'] = Mesh.MaterialOverride
+		MeshResultNames[k] = BMesh.name
+
+	# assign real mesh names to material overrides
+	for ob in bpy.context.scene.objects:
+		if ob.type == 'MESH' and ob.name.startswith('Mesh') and ob['MaterialOverride'] != '':
+			ob['MaterialOverride'] = MeshResultNames[ob['MaterialOverride']]
+
 	BArmature.select = True
 	bpy.context.scene.objects.active = BArmature
 	

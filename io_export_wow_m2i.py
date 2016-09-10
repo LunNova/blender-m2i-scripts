@@ -91,6 +91,9 @@ class CMesh:
 		This.VertexList = []
 		This.TriangleList = []
 		This.VertexDict = {}
+		This.MaterialOverride = None
+		This.CustomTexture = ""
+		This.GlossTexture = ""
 	
 	def AddTriangle(This, VertexA, VertexB, VertexC):
 		Triangle = CMesh.CTriangle()
@@ -163,17 +166,41 @@ def DoExport(FileName):
 		elif BObject.type == 'CAMERA' and BObject.name.startswith('Camera'):
 			BCameraList.append(BObject)
 	
+	MeshIndexesByName = dict()
+	# first fill indexes meshes
+	for i, BMesh in enumerate(BMeshList):
+		MeshIndexesByName[BMesh.name] = i
+
 	# extract meshes
 	for BMesh in BMeshList:
 		Mesh = CMesh()
 		name = BMesh.name.split('.')[0]
 		parts = name.split('_')
-
 		id = int(parts[0][4:])
-		if len(parts) > 1:
+
+		if 'Description' in BMesh:
+			Mesh.Description = BMesh['Description']
+		elif len(parts) > 1:
 			Mesh.Description = parts[1]
 		else:
 			Mesh.Description = ''
+			
+		if 'MaterialOverride' in BMesh and BMesh['MaterialOverride'] is not None and len(BMesh['MaterialOverride']) > 0:
+			if BMesh['MaterialOverride'] not in MeshIndexesByName:
+				raise Exception('Mesh \'' + BMesh.name + '\' has MaterialOverride property \'' + BMesh['MaterialOverride'] +  '\' that doesn\'t correspond to any mesh')
+			Mesh.MaterialOverride = MeshIndexesByName[BMesh['MaterialOverride']]
+		else:
+			Mesh.MaterialOverride = -1
+			
+		if 'CustomTexture' in BMesh and BMesh['CustomTexture'] is not None and len(BMesh['CustomTexture']) > 0:
+			Mesh.CustomTexture = BMesh['CustomTexture']
+		else:
+			Mesh.CustomTexture = ''
+			
+		if 'GlossTexture' in BMesh and BMesh['GlossTexture'] is not None and len(BMesh['GlossTexture']) > 0:
+			Mesh.GlossTexture = BMesh['GlossTexture']
+		else:
+			Mesh.GlossTexture = ''
 
 		Mesh.ID = id
 
@@ -250,12 +277,10 @@ def DoExport(FileName):
 	for BBone in BArmature.data.edit_bones:
 		Bone = CBone()
 		if not BBone.name.startswith('Bone'):
-			print('bone \'' + BBone.name + '\' is not named properly. proper convention is \'Bone[index]\'. model may have been corrupted by user error.')
-			return
+			raise Exception('Bone \'' + BBone.name + '\' is not named properly. Proper convention is \'Bone[index]\'.')
 		if BBone.parent != None:
 			if not BBone.parent.name.startswith('Bone'):
-				print('bone \'' + BBone.parent.name + '\' is not named properly. proper convention is \'Bone[index]\'. model may have been corrupted by user error.')
-				return
+				raise Exception('Bone \'' + BBone.parent.name + '\' is not named properly. Proper convention is \'Bone[index]\'.')
 		Bone.Index = int(BBone.name[4:].split('.')[0])
 		if BBone.parent != None:
 			Bone.Parent = int(BBone.parent.name[4:].split('.')[0])
@@ -308,7 +333,7 @@ def DoExport(FileName):
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
 	DataBinary.WriteUInt16(4)
-	DataBinary.WriteUInt16(6)
+	DataBinary.WriteUInt16(7)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
@@ -316,6 +341,9 @@ def DoExport(FileName):
 		#DataBinary.WriteUInt32(Mesh.ID) #ID. Normally is a UInt16.
 		DataBinary.WriteUInt16(Mesh.ID)
 		DataBinary.WriteNullterminatedString(Mesh.Description)
+		DataBinary.WriteSInt16(Mesh.MaterialOverride)
+		DataBinary.WriteNullterminatedString(Mesh.CustomTexture)
+		DataBinary.WriteNullterminatedString(Mesh.GlossTexture)
 		DataBinary.WriteUInt16(0) # Level.
 		DataBinary.WriteUInt32(len(Mesh.VertexList))
 		
