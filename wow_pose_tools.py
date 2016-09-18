@@ -37,8 +37,8 @@ class OBJECT_PT_WoW_Pose(bpy.types.Panel):
 	bl_category = 'Tools'
 	
 	def draw(self, context):
-		self.layout.operator('scene.wow_apply_modifiers', text='Apply armature mods');
 		self.layout.operator('scene.wow_create_modifiers', text='Create armature mods');
+		self.layout.operator('scene.wow_apply_modifiers', text='Apply armature mods');
 		self.layout.operator('scene.wow_apply_pose', text='Apply pose');
 
 class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
@@ -47,7 +47,7 @@ class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
 	bl_description = 'Apply armature modifiers to all meshes.'
 	
 	def execute(self, context):
-		bpy.ops.object.select_all(action = 'DESELECT')
+		#bpy.ops.object.select_all(action = 'DESELECT')
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH':
 				bpy.context.scene.objects.active = ob
@@ -100,8 +100,8 @@ class OBJECT_OP_Apply_Pose(bpy.types.Operator):
 	bl_description = 'Apply current pose as rest pose. Original Blender function is bugged - it does not respect attachments.'
 
 	def execute(self, context):
-		if bpy.context.active_object.mode != 'POSE':
-			self.report({'ERROR'}, "Must be in pose mode")
+		if bpy.context.active_object is None or bpy.context.active_object.mode != 'POSE':
+			self.report({'ERROR'}, "Must be in Pose mode")
 			return {'FINISHED'}
 		BoneByAttach = dict()
 		ParentByAttach = dict()
