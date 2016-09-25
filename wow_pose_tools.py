@@ -122,7 +122,77 @@ class OBJECT_OP_Apply_Pose(bpy.types.Operator):
 				ob.parent_bone = BoneByAttach[ob.name]
 
 		return {'FINISHED'}
-		
+
+bpy.types.WindowManager.iWowTools_WeightThreshold = bpy.props.FloatProperty(
+	name="iWowTools_WeightThreshold",
+	description="maximum vertex weight to be cleared",
+	default=0.001,
+	subtype='FACTOR',
+	unit='NONE',
+	min=0.0,
+	max=1.0,
+	soft_max=1.0)
+	
+class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
+	bl_label = "WowTools"
+	bl_idname = "wowtools.vertex_ops"
+	bl_space_type = "PROPERTIES"
+	bl_region_type = "WINDOW"
+	bl_context = "data"
+
+	def draw(self, context):
+
+		layout = self.layout
+
+		oTargetObject = context.active_object
+		oWM = context.window_manager
+
+		box = layout.box()
+		split = box.split(percentage=0.4)
+		col = split.column()
+		col.label(text="Weight Threshold:")
+		col = split.column()
+		col.prop(oWM, "iWowTools_WeightThreshold", text="", slider=True)
+		row = box.row()
+		row.operator("wowtools.cleanup_weights", text="Cleanup weights")
+
+class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
+
+	bl_idname = "wowtools.cleanup_weights"
+	bl_label = "Wow Tools Bone Weight Cleanup"
+
+	@classmethod
+	def poll(cls, context):
+
+		return context.active_object is not None
+
+	def execute(self, context):
+
+		oTargetObject = context.active_object
+
+		usedVertexGroups = dict()
+		for i, Vertex in enumerate(oTargetObject.data.vertices):
+			weightsToRemove = []
+			for g in Vertex.groups:
+				usedVertexGroups[g.group] = 1
+				if g.weight < context.window_manager.iWowTools_WeightThreshold:
+					weightsToRemove.append(g.group)
+					
+			for group in weightsToRemove:
+				oTargetObject.vertex_groups[group].remove([i])
+				
+		groupsToRemove = []
+		for i, VertexGroup in enumerate(oTargetObject.vertex_groups):
+			if VertexGroup.index not in usedVertexGroups:
+				groupsToRemove.append(VertexGroup)
+
+
+		for group in groupsToRemove:
+			oTargetObject.vertex_groups.remove(group)
+
+
+		self.report({'INFO'}, "Vertex weights cleaned up")
+		return {'FINISHED'}
 #******************************
 #---===Register===
 #******************************
