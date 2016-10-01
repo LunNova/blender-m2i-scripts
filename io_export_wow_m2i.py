@@ -121,6 +121,10 @@ class CBone:
 		This.Index = 0
 		This.Parent = -1
 		This.Position = [0.0, 0.0, 0.0]
+		This.HasExtraData = 0
+		This.Flags = 0
+		This.SubmeshId = 0
+		This.Unknown = [ 0, 0 ]
 
 class CAttachment:
 	def __init__(This):
@@ -287,6 +291,13 @@ def DoExport(FileName):
 		Bone.Position[0] = BBone.head.y
 		Bone.Position[1] = -BBone.head.x
 		Bone.Position[2] = BBone.head.z
+		if 'Flags' in BBone and 'SubmeshId' in BBone and 'Unknown0' in BBone and 'Unknown1' in BBone:
+			Bone.HasExtraData = 1
+			Bone.Flags = BBone['Flags']
+			Bone.SubmeshId = BBone['SubmeshId']
+			Bone.Unknown[0] = BBone['Unknown0']
+			Bone.Unknown[1] = BBone['Unknown1']
+
 		BoneList.append(Bone)
 		BoneMap[BBone.name] = BBone
 	bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
@@ -333,7 +344,7 @@ def DoExport(FileName):
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
 	DataBinary.WriteUInt16(4)
-	DataBinary.WriteUInt16(7)
+	DataBinary.WriteUInt16(8)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
@@ -380,7 +391,13 @@ def DoExport(FileName):
 		DataBinary.WriteFloat32(Bone.Position[0])
 		DataBinary.WriteFloat32(Bone.Position[1])
 		DataBinary.WriteFloat32(Bone.Position[2])
-	
+		DataBinary.WriteUInt8(Bone.HasExtraData)
+		if Bone.HasExtraData:
+			DataBinary.WriteUInt32(Bone.Flags)
+			DataBinary.WriteUInt16(Bone.SubmeshId)
+			DataBinary.WriteUInt16(Bone.Unknown[0])
+			DataBinary.WriteUInt16(Bone.Unknown[1])
+
 	# save attachment list
 	DataBinary.WriteUInt32(len(AttachmentList))
 	for Attachment in AttachmentList:

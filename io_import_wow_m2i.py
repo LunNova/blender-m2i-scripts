@@ -98,6 +98,10 @@ class CBone:
 		This.Index = 0
 		This.Parent = -1
 		This.Position = [0.0, 0.0, 0.0]
+		This.HasExtraData = 0
+		This.Flags = 0
+		This.SubmeshId = 0
+		This.Unknown = [ 0, 0 ]
 
 class CAttachment:
 	def __init__(This):
@@ -194,6 +198,15 @@ def DoImport(FileName):
 		Bone.Position[0] = DataBinary.ReadFloat32()
 		Bone.Position[1] = DataBinary.ReadFloat32()
 		Bone.Position[2] = DataBinary.ReadFloat32()
+
+		if Version >= MakeVersion(4, 8):
+			Bone.HasExtraData = DataBinary.ReadUInt8()
+			if Bone.HasExtraData != 0:
+				Bone.Flags = DataBinary.ReadUInt32()
+				Bone.SubmeshId = DataBinary.ReadUInt16()
+				Bone.Unknown[0] = DataBinary.ReadUInt16()
+				Bone.Unknown[1] = DataBinary.ReadUInt16()
+
 		BoneList.append(Bone)
 	
 	# load attachment list
@@ -242,6 +255,12 @@ def DoImport(FileName):
 		BEditBone.tail.x = BEditBone.head.x
 		BEditBone.tail.y = BEditBone.head.y + 0.1
 		BEditBone.tail.z = BEditBone.head.z
+		if Bone.HasExtraData != 0:
+			BEditBone['Flags'] = Bone.Flags
+			BEditBone['SubmeshId'] = Bone.SubmeshId
+			BEditBone['Unknown0'] = Bone.Unknown[0]
+			BEditBone['Unknown1'] = Bone.Unknown[1]
+
 	for Bone in BoneList: # link children to parents
 		if Bone.Parent >= 0:
 			BEditBone = BArmature.data.edit_bones['Bone' + str('%03d' % Bone.Index)]
