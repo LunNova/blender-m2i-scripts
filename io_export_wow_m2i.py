@@ -92,7 +92,10 @@ class CMesh:
 		This.TriangleList = []
 		This.VertexDict = {}
 		This.MaterialOverride = None
+		This.HasCustomTexture = False
 		This.CustomTexture = ""
+		This.TextureStyle = 0
+		This.HasGloss = False
 		This.GlossTexture = ""
 	
 	def AddTriangle(This, VertexA, VertexB, VertexC):
@@ -121,7 +124,7 @@ class CBone:
 		This.Index = 0
 		This.Parent = -1
 		This.Position = [0.0, 0.0, 0.0]
-		This.HasExtraData = 0
+		This.HasData = 0
 		This.Flags = 0
 		This.SubmeshId = 0
 		This.Unknown = [ 0, 0 ]
@@ -136,7 +139,9 @@ class CAttachment:
 class CCamera:
 	def __init__(This):
 		This.ID = 0
+		This.HasData = False
 		This.Type = 0
+		This.HasData = False
 		This.FieldOfView = 0.7
 		This.ClipFar = 100.0
 		This.ClipNear = 0.5
@@ -182,29 +187,23 @@ def DoExport(FileName):
 		parts = name.split('_')
 		id = int(parts[0][4:])
 
-		if 'Description' in BMesh:
-			Mesh.Description = BMesh['Description']
-		elif len(parts) > 1:
-			Mesh.Description = parts[1]
-		else:
-			Mesh.Description = ''
-			
-		if 'MaterialOverride' in BMesh and BMesh['MaterialOverride'] is not None and len(BMesh['MaterialOverride']) > 0:
-			if BMesh['MaterialOverride'] not in MeshIndexesByName:
-				raise Exception('Mesh \'' + BMesh.name + '\' has MaterialOverride property \'' + BMesh['MaterialOverride'] +  '\' that doesn\'t correspond to any mesh')
-			Mesh.MaterialOverride = MeshIndexesByName[BMesh['MaterialOverride']]
+		props = BMesh.data.wow_props
+
+		if len(props.MaterialOverride) > 0:
+			if props.MaterialOverride not in MeshIndexesByName:
+				raise Exception('Mesh \'' + BMesh.name + '\' has MaterialOverride property \'' + props.MaterialOverride +  '\' that doesn\'t correspond to any mesh')
+			Mesh.MaterialOverride = MeshIndexesByName[props.MaterialOverride]
 		else:
 			Mesh.MaterialOverride = -1
-			
-		if 'CustomTexture' in BMesh and BMesh['CustomTexture'] is not None and len(BMesh['CustomTexture']) > 0:
-			Mesh.CustomTexture = BMesh['CustomTexture']
-		else:
-			Mesh.CustomTexture = ''
-			
-		if 'GlossTexture' in BMesh and BMesh['GlossTexture'] is not None and len(BMesh['GlossTexture']) > 0:
-			Mesh.GlossTexture = BMesh['GlossTexture']
-		else:
-			Mesh.GlossTexture = ''
+
+		Mesh.HasCustomTexture = props.HasCustomTexture
+		Mesh.CustomTexture = props.CustomTexture
+		Mesh.TextureStyle = int(props.TextureStyle)
+
+		Mesh.HasGloss = props.HasGloss
+		Mesh.GlossTexture = props.GlossTexture
+
+		Mesh.Description = props.Description
 
 		Mesh.ID = id
 
@@ -291,12 +290,13 @@ def DoExport(FileName):
 		Bone.Position[0] = BBone.head.y
 		Bone.Position[1] = -BBone.head.x
 		Bone.Position[2] = BBone.head.z
-		if 'Flags' in BBone and 'SubmeshId' in BBone and 'Unknown0' in BBone and 'Unknown1' in BBone:
-			Bone.HasExtraData = 1
-			Bone.Flags = BBone['Flags']
-			Bone.SubmeshId = BBone['SubmeshId']
-			Bone.Unknown[0] = BBone['Unknown0']
-			Bone.Unknown[1] = BBone['Unknown1']
+
+		props = BBone.wow_props
+		Bone.HasData = props.HasData
+		Bone.Flags = props.Flags
+		Bone.SubmeshId = props.SubmeshId
+		Bone.Unknown[0] = props.Unknown0
+		Bone.Unknown[1] = props.Unknown1
 
 		BoneList.append(Bone)
 		BoneMap[BBone.name] = BBone
@@ -318,16 +318,14 @@ def DoExport(FileName):
 	for BCamera in BCameraList:
 		Camera = CCamera()
 
-		if 'Type' not in BCamera or 'TargetX' not in BCamera or 'TargetY' not in BCamera or 'TargetZ' not in BCamera:
-			continue
-
-		Camera.Type = BCamera['Type']
+		props = BCamera.data.wow_props
+		Camera.Type = int(props.Type)
 		Camera.Position[0] = BCamera.location.y
 		Camera.Position[1] = -BCamera.location.x
 		Camera.Position[2] = BCamera.location.z
-		Camera.Target[0] = BCamera['TargetY']
-		Camera.Target[1] = -BCamera['TargetX']
-		Camera.Target[2] = BCamera['TargetZ']
+		Camera.Target[0] = props.TargetY
+		Camera.Target[1] = -props.TargetX
+		Camera.Target[2] = props.TargetZ
 
 		Camera.FieldOfView = BCamera.data.angle
 		Camera.ClipNear = BCamera.data.clip_start
@@ -344,7 +342,7 @@ def DoExport(FileName):
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
 	DataBinary.WriteUInt16(4)
-	DataBinary.WriteUInt16(8)
+	DataBinary.WriteUInt16(9)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
@@ -353,7 +351,10 @@ def DoExport(FileName):
 		DataBinary.WriteUInt16(Mesh.ID)
 		DataBinary.WriteNullterminatedString(Mesh.Description)
 		DataBinary.WriteSInt16(Mesh.MaterialOverride)
+		DataBinary.WriteUInt8(Mesh.HasCustomTexture)
 		DataBinary.WriteNullterminatedString(Mesh.CustomTexture)
+		DataBinary.WriteUInt16(Mesh.TextureStyle)
+		DataBinary.WriteUInt8(Mesh.HasGloss)
 		DataBinary.WriteNullterminatedString(Mesh.GlossTexture)
 		DataBinary.WriteUInt16(0) # Level.
 		DataBinary.WriteUInt32(len(Mesh.VertexList))
@@ -391,12 +392,11 @@ def DoExport(FileName):
 		DataBinary.WriteFloat32(Bone.Position[0])
 		DataBinary.WriteFloat32(Bone.Position[1])
 		DataBinary.WriteFloat32(Bone.Position[2])
-		DataBinary.WriteUInt8(Bone.HasExtraData)
-		if Bone.HasExtraData:
-			DataBinary.WriteUInt32(Bone.Flags)
-			DataBinary.WriteUInt16(Bone.SubmeshId)
-			DataBinary.WriteUInt16(Bone.Unknown[0])
-			DataBinary.WriteUInt16(Bone.Unknown[1])
+		DataBinary.WriteUInt8(Bone.HasData)
+		DataBinary.WriteUInt32(Bone.Flags)
+		DataBinary.WriteUInt16(Bone.SubmeshId)
+		DataBinary.WriteUInt16(Bone.Unknown[0])
+		DataBinary.WriteUInt16(Bone.Unknown[1])
 
 	# save attachment list
 	DataBinary.WriteUInt32(len(AttachmentList))
@@ -411,6 +411,7 @@ def DoExport(FileName):
 	# save camera list
 	DataBinary.WriteUInt32(len(CameraList))
 	for Camera in CameraList:
+		DataBinary.WriteUInt8(Camera.HasData)
 		DataBinary.WriteSInt32(Camera.Type)
 		DataBinary.WriteFloat32(Camera.FieldOfView)
 		DataBinary.WriteFloat32(Camera.ClipFar)

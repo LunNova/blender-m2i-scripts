@@ -262,6 +262,292 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 				ob.hide = False
 		return {'FINISHED'}
 
+class Wow_Mesh_Props(bpy.types.PropertyGroup):
+	
+	@classmethod
+	def register(Wow_Mesh_Props):
+
+		Wow_Mesh_Props.Description = bpy.props.StringProperty(name="Description",
+			description="Mesh description")
+		Wow_Mesh_Props.HasCustomTexture = bpy.props.BoolProperty(
+			name="", 
+			description="Mesh has custom texture assigned",
+			default=False)
+		Wow_Mesh_Props.CustomTexture = bpy.props.StringProperty(name="Custom Texture", 
+			description="Path to texture")
+		Wow_Mesh_Props.TextureStyle = bpy.props.EnumProperty(
+			name='Texture style',
+			description='Style of texture (blending mode)',
+			items=[('0', 'Opaque', 'Opaque texture'),
+				('1', 'Mod', ''),
+				('2', 'Decal', 'Use for textures with transparencies'),
+				('3', 'Add', ''),
+				('4', 'Mod2x', ''),
+				('5', 'Fade', ''),
+				('6', 'Unknown6', ''),
+				('7', 'Unknown7', '')],
+			default='2'
+			)
+
+		Wow_Mesh_Props.MaterialOverride = bpy.props.StringProperty(name="Material Override", 
+			description="Mesh from which material should be copied")
+			
+		Wow_Mesh_Props.HasGloss = bpy.props.BoolProperty(
+			name="", 
+			description="Mesh has gloss effect assigned",
+			default=False)
+		Wow_Mesh_Props.GlossTexture = bpy.props.StringProperty(name="Gloss Texture", 
+			description="Path to gloss texture")
+
+		bpy.types.Mesh.wow_props = bpy.props.PointerProperty(type=Wow_Mesh_Props, 
+			name="WoW Mesh Properties", 
+			description="WoW Mesh Properties")
+	@classmethod
+	def unregister(cls):
+		del bpy.types.Mesh.wow_props
+
+class Wow_Camera_Props(bpy.types.PropertyGroup):
+
+	@classmethod
+	def register(Wow_Camera_Props):
+
+		Wow_Camera_Props.HasData = bpy.props.BoolProperty(
+			name="", 
+			description="Camera has custom data assigned",
+			default=False)
+		Wow_Camera_Props.TargetX = bpy.props.FloatProperty(
+			name="TargetX",
+			description="X coordinate of camera target",
+			default=0.0,
+			subtype='FACTOR',
+			unit='NONE')
+		Wow_Camera_Props.TargetY = bpy.props.FloatProperty(
+			name="TargetY",
+			description="Y coordinate of camera target",
+			default=0.0,
+			subtype='FACTOR',
+			unit='NONE')
+		Wow_Camera_Props.TargetZ = bpy.props.FloatProperty(
+			name="TargetZ",
+			description="Z coordinate of camera target",
+			default=0.0,
+			subtype='FACTOR',
+			unit='NONE')	
+		Wow_Camera_Props.CameraType = bpy.props.EnumProperty(
+			name='Camera type',
+			description='Style of texture',
+			items=[('-1', 'FlyBy', 'FlyBy camera (movies)'),
+				('0', 'Portrait', 'Portrait camera (character bar)'),
+				('1', 'Paperdoll', 'Portrait camera (character menu)')],
+			)
+
+		bpy.types.Camera.wow_props = bpy.props.PointerProperty(type=Wow_Camera_Props, 
+			name="WoW Camera Properties", 
+			description="WoW Camera Properties")
+	@classmethod
+	def unregister(cls):
+		del bpy.types.Camera.wow_props
+
+class Wow_EditBone_Props(bpy.types.PropertyGroup):
+
+	@classmethod
+	def register(Wow_EditBone_Props):
+
+		Wow_EditBone_Props.HasData = bpy.props.BoolProperty(
+			name="", 
+			description="Bone has custom data assigned",
+			default=False)
+		Wow_EditBone_Props.Flags = bpy.props.IntProperty(
+			name="Flags",
+			description="Flags",
+			default=0,
+			min=0,
+			max=2147483647)
+		Wow_EditBone_Props.SubmeshId = bpy.props.IntProperty(
+			name="Submesh Id",
+			description="Index of a submesh that bone belongs to",
+			default=0,
+			min=0,
+			max=65535)
+		Wow_EditBone_Props.Unknown0 = bpy.props.IntProperty(
+			name="Unknown 0",
+			default=0,
+			min=0,
+			max=65535)
+		Wow_EditBone_Props.Unknown1 = bpy.props.IntProperty(
+			name="Unknown 1",
+			default=0,
+			min=0,
+			max=65535)
+
+		bpy.types.EditBone.wow_props = bpy.props.PointerProperty(type=Wow_EditBone_Props, 
+			name="WoW EditBone Properties", 
+			description="WoW EditBone Properties")
+	@classmethod
+	def unregister(cls):
+		del bpy.types.EditBone.wow_props
+	
+class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
+	bl_label = "WoW Properies"
+	bl_idname = "wowtools.mesh_ops"
+	bl_space_type = "PROPERTIES"
+	bl_region_type = "WINDOW"
+	bl_context = "object"
+
+	def draw(self, context):
+
+		layout = self.layout
+
+		oTargetObject = context.active_object
+		oTargetBone = bpy.context.active_bone
+
+		targetType = ""
+		if oTargetObject.data is not None:
+			if oTargetObject.type == "MESH":
+				targetType = "MESH"
+			elif oTargetObject.type == "CAMERA":
+				targetType = "CAMERA"
+		if oTargetBone is not None and (bpy.context.active_object.mode == 'EDIT' or bpy.context.active_object.mode == 'POSE'):
+			targetType = "BONE"
+			
+		if targetType == "":
+			layout.operator("wowtools.transfer_old_properties")
+			return
+
+		if targetType == "MESH":
+			props = oTargetObject.data.wow_props
+			layout.prop(props, 'Description')
+			layout.prop(props, 'HasCustomTexture', text="Enable custom texture")
+			box = layout.box()
+			box.prop(props, 'CustomTexture')
+			box.prop(props, 'TextureStyle')
+			if not props.HasCustomTexture:
+				box.active = False
+
+			layout.prop(props, 'HasGloss', text="Enable gloss texture")
+			box = layout.box()
+			box.prop(props, 'GlossTexture')
+			layout.prop_search(props, "MaterialOverride", context.scene, "objects")
+			if not props.HasGloss:
+				box.active = False
+		elif targetType == "CAMERA":
+			props = oTargetObject.data.wow_props
+			layout.prop(props, 'HasData', text="Enable camera modify")
+			box = layout.box()
+			box.prop(props, 'CameraType')
+			box.prop(props, 'TargetX')
+			box.prop(props, 'TargetY')
+			box.prop(props, 'TargetZ')
+			if not props.HasData:
+				box.active = False
+		elif targetType == "BONE":
+			props = oTargetBone.wow_props
+			layout.prop(props, 'HasData', text="Enable bone modify")
+			box = layout.box()
+			box.prop(props, 'Flags')
+			box.prop(props, 'SubmeshId')
+			box.prop(props, 'Unknown0')
+			box.prop(props, 'Unknown1')
+			if not props.HasData:
+				box.active = False
+		layout.operator("wowtools.transfer_old_properties")
+			
+class DATA_OT_wowtools_transfer_old_properties(bpy.types.Operator):
+
+	bl_idname = "wowtools.transfer_old_properties"
+	bl_label = "Transfer custom properties"
+
+	@classmethod
+	def poll(cls, context):
+		return True
+
+	def execute(self, context):
+		for ob in bpy.context.scene.objects:
+			if ob.type == 'MESH':
+				if 'Description' in ob:
+					if ob['Description'] is not None and len(ob['Description']) > 0:
+						ob.data.wow_props.Description = ob['Description']
+					del ob['Description']
+				if 'CustomTexture' in ob:
+					if ob['CustomTexture'] is not None and len(ob['CustomTexture']) > 0:
+						ob.data.wow_props.HasCustomTexture = True
+						ob.data.wow_props.CustomTexture = ob['CustomTexture']
+						ob.data.wow_props.TextureStyle = '2'	# decal
+					del ob['CustomTexture']
+				if 'GlossTexture' in ob:
+					if ob['GlossTexture'] is not None and len(ob['GlossTexture']) > 0:
+						ob.data.wow_props.HasGloss = True
+						ob.data.wow_props.GlossTexture = ob['GlossTexture']
+					del ob['GlossTexture']
+			elif ob.type == 'CAMERA':
+				fail = False
+				hasData = False
+				if 'Type' in ob:
+					hasData = True
+					if ob['Type'] == -1:
+						ob.data.wow_props.CameraType = '-1'
+					elif ob['Type'] == 0:
+						ob.data.wow_props.CameraType = '0'
+					elif ob['Type'] == 1:
+						ob.data.wow_props.CameraType = '1'
+					else:
+						fail = True
+					del ob['Type']
+				else:
+					fail = True
+				if 'TargetX' in ob:
+					hasData = True
+					ob.data.wow_props.TargetX = ob['TargetX']
+					del ob['TargetX']
+				else:
+					fail = True
+				if 'TargetY' in ob:
+					hasData = True
+					ob.data.wow_props.TargetY = ob['TargetY']
+					del ob['TargetY']
+				else:
+					fail = True
+				if 'TargetZ' in ob:
+					hasData = True
+					ob.data.wow_props.TargetZ = ob['TargetZ']
+					del ob['TargetZ']
+				else:
+					fail = True
+				if hasData and not fail:
+					ob.data.wow_props.HasData = True
+			elif ob.type == 'ARMATURE':
+				for bone in ob.data.edit_bones:
+					fail = False
+					hasData = False
+					if 'Flags' in bone:
+						hasData = True
+						bone.wow_props.Flags = bone['Flags']
+						del bone['Flags']
+					else:
+						fail = True
+					if 'SubmeshId' in bone:
+						hasData = True
+						bone.wow_props.SubmeshId = bone['SubmeshId']
+						del bone['SubmeshId']
+					else:
+						fail = True
+					if 'Unknown0' in bone:
+						hasData = True
+						bone.wow_props.Unknown0 = bone['Unknown0']
+						del bone['Unknown0']
+					else:
+						fail = True
+					if 'Unknown1' in bone:
+						hasData = True
+						bone.wow_props.Unknown1 = bone['Unknown1']
+						del bone['Unknown1']
+					else:
+						fail = True
+					if hasData and not fail:
+						bone.wow_props.HasData = True
+
+		return {'FINISHED'}
+
 #******************************
 #---===Register===
 #******************************

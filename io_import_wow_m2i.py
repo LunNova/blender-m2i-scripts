@@ -90,7 +90,10 @@ class CMesh:
 		This.VertexList = []
 		This.TriangleList = []
 		This.MaterialOverride = None
+		This.HasCustomTexture = False
 		This.CustomTexture = ""
+		This.TextureStyle = 0
+		This.HasGloss = False
 		This.GlossTexture = ""
 
 class CBone:
@@ -98,7 +101,7 @@ class CBone:
 		This.Index = 0
 		This.Parent = -1
 		This.Position = [0.0, 0.0, 0.0]
-		This.HasExtraData = 0
+		This.HasData = False
 		This.Flags = 0
 		This.SubmeshId = 0
 		This.Unknown = [ 0, 0 ]
@@ -113,6 +116,7 @@ class CAttachment:
 class CCamera:
 	def __init__(This):
 		This.ID = 0
+		This.HasData = False
 		This.Type = 0
 		This.FieldOfView = 0.7
 		This.ClipFar = 100.0
@@ -139,7 +143,7 @@ def DoImport(FileName):
 	VersionMinor = DataBinary.ReadUInt16()
 	Version = MakeVersion(VersionMajor, VersionMinor)
 	
-	if VersionMajor != 4 or VersionMinor < 5 and VersionMinor > 7:
+	if VersionMajor != 4 or VersionMinor < 5 or VersionMinor > 9:
 		File.close()
 		raise Exception('Unsupported M2I version ' + str("%d.%d") % (VersionMajor , VersionMinor))
 	
@@ -152,7 +156,12 @@ def DoImport(FileName):
 			Mesh.Description = DataBinary.ReadNullterminatedString()
 		if Version >= MakeVersion(4, 7):
 			Mesh.MaterialOverride = DataBinary.ReadSInt16()
+			if Version >= MakeVersion(4, 9):
+				Mesh.HasCustomTexture = DataBinary.ReadUInt8() != 0
 			Mesh.CustomTexture = DataBinary.ReadNullterminatedString()
+			if Version >= MakeVersion(4, 9):
+				Mesh.TextureStyle = DataBinary.ReadUInt16()
+				Mesh.HasGloss = DataBinary.ReadUInt8() != 0
 			Mesh.GlossTexture = DataBinary.ReadNullterminatedString()
 		
 		Mesh.Level = DataBinary.ReadUInt16()
@@ -200,12 +209,11 @@ def DoImport(FileName):
 		Bone.Position[2] = DataBinary.ReadFloat32()
 
 		if Version >= MakeVersion(4, 8):
-			Bone.HasExtraData = DataBinary.ReadUInt8()
-			if Bone.HasExtraData != 0:
-				Bone.Flags = DataBinary.ReadUInt32()
-				Bone.SubmeshId = DataBinary.ReadUInt16()
-				Bone.Unknown[0] = DataBinary.ReadUInt16()
-				Bone.Unknown[1] = DataBinary.ReadUInt16()
+			Bone.HasData = DataBinary.ReadUInt8() != 0
+			Bone.Flags = DataBinary.ReadUInt32()
+			Bone.SubmeshId = DataBinary.ReadUInt16()
+			Bone.Unknown[0] = DataBinary.ReadUInt16()
+			Bone.Unknown[1] = DataBinary.ReadUInt16()
 
 		BoneList.append(Bone)
 	
@@ -226,6 +234,8 @@ def DoImport(FileName):
 	for i in range(0, CameraCount):
 		Camera = CCamera()
 		Camera.ID = i
+		if Version >= MakeVersion(4, 9):
+			Camera.HasData = DataBinary.ReadUInt8() != 0
 		Camera.Type = DataBinary.ReadSInt32()
 		Camera.FieldOfView = DataBinary.ReadFloat32()
 		Camera.ClipFar = DataBinary.ReadFloat32()
@@ -255,11 +265,10 @@ def DoImport(FileName):
 		BEditBone.tail.x = BEditBone.head.x
 		BEditBone.tail.y = BEditBone.head.y + 0.1
 		BEditBone.tail.z = BEditBone.head.z
-		if Bone.HasExtraData != 0:
-			BEditBone['Flags'] = Bone.Flags
-			BEditBone['SubmeshId'] = Bone.SubmeshId
-			BEditBone['Unknown0'] = Bone.Unknown[0]
-			BEditBone['Unknown1'] = Bone.Unknown[1]
+		BEditBone.wow_props.Flags = Bone.Flags
+		BEditBone.wow_props.SubmeshId = Bone.SubmeshId
+		BEditBone.wow_props.Unknown0 = Bone.Unknown[0]
+		BEditBone.wow_props.Unknown1 = Bone.Unknown[1]
 
 	for Bone in BoneList: # link children to parents
 		if Bone.Parent >= 0:
@@ -305,10 +314,16 @@ def DoImport(FileName):
 		BCamera.data.clip_start = Camera.ClipNear
 		BCamera.data.clip_end = Camera.ClipFar
 		
-		BCamera['Type'] = Camera.Type
-		BCamera['TargetX'] = -Camera.Target[1]
-		BCamera['TargetY'] = Camera.Target[0]
-		BCamera['TargetZ'] = Camera.Target[2]
+		BCamera.data.wow_props.HasData = Camera.HasData
+		if Camera.Type == -1:
+			BCamera.data.wow_props.Type = '-1'
+		elif Camera.Type == 0:
+			BCamera.data.wow_props.Type = '0'
+		elif Camera.Type == 1:
+			BCamera.data.wow_props.Type = '1'
+		BCamera.data.wow_props.TargetX = -Camera.Target[1]
+		BCamera.data.wow_props.TargetY = Camera.Target[0]
+		BCamera.data.wow_props.TargetZ = Camera.Target[2]
 		
 		BCamera.parent = BArmature
 	
@@ -365,19 +380,21 @@ def DoImport(FileName):
 		BMesh.parent = BArmature
 		BMesh.select = False
 		
-		BMesh['Description'] = Mesh.Description
-		BMesh['CustomTexture'] = Mesh.CustomTexture
-		BMesh['GlossTexture'] = Mesh.GlossTexture
-		if Mesh.MaterialOverride is None or Mesh.MaterialOverride < 0:
-			BMesh['MaterialOverride'] = ''
-		else:
-			BMesh['MaterialOverride'] = Mesh.MaterialOverride
+		BMesh.data.wow_props.Description = Mesh.Description
+		BMesh.data.wow_props.HasCustomTexture = Mesh.HasCustomTexture
+		BMesh.data.wow_props.CustomTexture = Mesh.CustomTexture
+		BMesh.data.wow_props.TextureStyle = str(Mesh.TextureStyle)
+		BMesh.data.wow_props.HasGloss = Mesh.HasGloss
+		BMesh.data.wow_props.GlossTexture = Mesh.GlossTexture
+		if Mesh.MaterialOverride is not None and Mesh.MaterialOverride >= 0:
+			BMesh['TmpMaterialOverride'] = Mesh.MaterialOverride
 		MeshResultNames[k] = BMesh.name
 
 	# assign real mesh names to material overrides
 	for ob in bpy.context.scene.objects:
-		if ob.type == 'MESH' and ob.name.startswith('Mesh') and ob['MaterialOverride'] != '':
-			ob['MaterialOverride'] = MeshResultNames[ob['MaterialOverride']]
+		if ob.type == 'MESH' and ob.name.startswith('Mesh') and 'TmpMaterialOverride' in ob:
+			ob.data.wow_props.MaterialOverride = MeshResultNames[ob['TmpMaterialOverride']]
+			del ob['TmpMaterialOverride']
 
 	BArmature.select = True
 	bpy.context.scene.objects.active = BArmature
