@@ -319,21 +319,24 @@ class Wow_Camera_Props(bpy.types.PropertyGroup):
 			name="TargetX",
 			description="X coordinate of camera target",
 			default=0.0,
+			precision=5,
 			subtype='FACTOR',
 			unit='NONE')
 		Wow_Camera_Props.TargetY = bpy.props.FloatProperty(
 			name="TargetY",
 			description="Y coordinate of camera target",
 			default=0.0,
+			precision=5,
 			subtype='FACTOR',
 			unit='NONE')
 		Wow_Camera_Props.TargetZ = bpy.props.FloatProperty(
 			name="TargetZ",
 			description="Z coordinate of camera target",
 			default=0.0,
+			precision=5,
 			subtype='FACTOR',
 			unit='NONE')	
-		Wow_Camera_Props.CameraType = bpy.props.EnumProperty(
+		Wow_Camera_Props.Type = bpy.props.EnumProperty(
 			name='Camera type',
 			description='Style of texture',
 			items=[('-1', 'FlyBy', 'FlyBy camera (movies)'),
@@ -434,7 +437,7 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 			props = oTargetObject.data.wow_props
 			layout.prop(props, 'HasData', text="Enable camera modify")
 			box = layout.box()
-			box.prop(props, 'CameraType')
+			box.prop(props, 'Type')
 			box.prop(props, 'TargetX')
 			box.prop(props, 'TargetY')
 			box.prop(props, 'TargetZ')
@@ -485,11 +488,11 @@ class DATA_OT_wowtools_transfer_old_properties(bpy.types.Operator):
 				if 'Type' in ob:
 					hasData = True
 					if ob['Type'] == -1:
-						ob.data.wow_props.CameraType = '-1'
+						ob.data.wow_props.Type = '-1'
 					elif ob['Type'] == 0:
-						ob.data.wow_props.CameraType = '0'
+						ob.data.wow_props.Type = '0'
 					elif ob['Type'] == 1:
-						ob.data.wow_props.CameraType = '1'
+						ob.data.wow_props.Type = '1'
 					else:
 						fail = True
 					del ob['Type']

@@ -265,6 +265,7 @@ def DoImport(FileName):
 		BEditBone.tail.x = BEditBone.head.x
 		BEditBone.tail.y = BEditBone.head.y + 0.1
 		BEditBone.tail.z = BEditBone.head.z
+		BEditBone.wow_props.HasData = Bone.HasData
 		BEditBone.wow_props.Flags = Bone.Flags
 		BEditBone.wow_props.SubmeshId = Bone.SubmeshId
 		BEditBone.wow_props.Unknown0 = Bone.Unknown[0]
