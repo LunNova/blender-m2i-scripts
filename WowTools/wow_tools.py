@@ -1,21 +1,3 @@
-#----------------------------------------------------------
-# File shapekey_pin.py
-#----------------------------------------------------------
-bl_info = {
-	'name': 'WoW Tools',
-	'author': 'Freeman',
-	'version': (1, 2, 0),
-	'blender': (2, 73, 0),
-	'api': 36302,
-	#'location': 'Properties space > Scene tab > WoW Tools panel',
-	'location': 'VIEW 3D > Tools > WoW Tools panel',
-	'description': 'WoW Tools',
-	'warning': '',
-	'wiki_url': 'http://forums.darknestfantasyerotica.com/member.php?105498-Freeman',
-	'tracker_url': '',
-	'support': 'COMMUNITY',
-	'category': '3D View'}
- 
 #******************************
 #---===Import declarations===
 #******************************
@@ -350,7 +332,7 @@ class Wow_Camera_Props(bpy.types.PropertyGroup):
 	@classmethod
 	def unregister(cls):
 		del bpy.types.Camera.wow_props
-
+		
 class Wow_EditBone_Props(bpy.types.PropertyGroup):
 
 	@classmethod
@@ -550,22 +532,3 @@ class DATA_OT_wowtools_transfer_old_properties(bpy.types.Operator):
 						bone.wow_props.HasData = True
 
 		return {'FINISHED'}
-
-#******************************
-#---===Register===
-#******************************
-def register():
-	bpy.utils.register_module(__name__)
-	
-def unregister():
-	bpy.utils.unregister_module(__name__)
-
-	if bpy.context.scene.get('CONFIG_WowTools') != None:
-		del bpy.context.scene['CONFIG_WowTools']
-	try:
-		del bpy.types.Scene.CONFIG_WowTools
-	except:
-		pass
-
-if __name__ == '__main__':
-	main()

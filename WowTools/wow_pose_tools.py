@@ -1,21 +1,3 @@
-#----------------------------------------------------------
-# File wow_pose_tools.py
-#----------------------------------------------------------
-bl_info = {
-	'name': 'WoW Pose Tools',
-	'author': 'Suncurio',
-	'version': (1, 0, 0),
-	'blender': (2, 73, 0),
-	'api': 36302,
-	#'location': 'Properties space > Scene tab > WoW Tools panel',
-	'location': 'VIEW 3D > Tools > WoW Pose Tools panel',
-	'description': 'WoW Pose Tools',
-	'warning': '',
-	'wiki_url': '',
-	'tracker_url': '',
-	'support': 'COMMUNITY',
-	'category': '3D View'}
- 
 #******************************
 #---===Import declarations===
 #******************************
@@ -193,21 +175,3 @@ class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 
 		self.report({'INFO'}, "Vertex weights cleaned up")
 		return {'FINISHED'}
-#******************************
-#---===Register===
-#******************************
-def register():
-	bpy.utils.register_module(__name__)
-	
-def unregister():
-	bpy.utils.unregister_module(__name__)
-
-	if bpy.context.scene.get('CONFIG_WowPoseTools') != None:
-		del bpy.context.scene['CONFIG_WowPoseTools']
-	try:
-		del bpy.types.Scene.CONFIG_WowPoseTools
-	except:
-		pass
-
-if __name__ == '__main__':
-	main()
