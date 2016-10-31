@@ -16,7 +16,7 @@ class OBJECT_PT_WoW(bpy.types.Panel):
 	bl_idname = 'WoWTools'
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
-	bl_category = 'Tools'
+	bl_category = 'WoW'
 	
 	def draw(self, context):
 		layout = self.layout.split()
@@ -27,7 +27,7 @@ class OBJECT_PT_WoW(bpy.types.Panel):
 		layout_col1.operator('scene.wow_hide_attachments', text='Attach')
 		layout_col1.operator('scene.wow_hide_armature', text='Armature')
 		layout_col1.operator('scene.wow_hide_cameras', text='Camera')
-		layout_col1.operator('scene.wow_hide_facial', text=' Facial')
+		layout_col1.operator('scene.wow_hide_facial', text='Facial')
 		layout_col1.operator('scene.wow_hide_hair', text='Hair')
 		layout_col1.operator('scene.wow_hide_armors', text='Armor')
 		layout_col1.operator('scene.wow_hide_cloak', text='Cloak')
@@ -243,6 +243,25 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
+
+class Wow_Scene_Props(bpy.types.PropertyGroup):
+
+	@classmethod
+	def register(Wow_Scene_Props):
+		Wow_Scene_Props.CurrentM2BRFile = bpy.props.StringProperty(name="M2BR Source",
+			description="Bone remap source file")
+		Wow_Scene_Props.SourceRemapArmature = bpy.props.StringProperty(name="Source armature",
+			description="Source remap armature")
+		Wow_Scene_Props.TargetRemapArmature = bpy.props.StringProperty(name="Target armature",
+			description="Target remap armature")
+
+		bpy.types.Scene.wow_props = bpy.props.PointerProperty(type=Wow_Scene_Props, 
+			name="WoW Scene Properties", 
+			description="WoW Scene Properties")
+
+	@classmethod
+	def unregister(cls):
+		del bpy.types.Scene.wow_props
 
 class Wow_Mesh_Props(bpy.types.PropertyGroup):
 	
@@ -530,5 +549,152 @@ class DATA_OT_wowtools_transfer_old_properties(bpy.types.Operator):
 						fail = True
 					if hasData and not fail:
 						bone.wow_props.HasData = True
+
+		return {'FINISHED'}
+
+class ArmatureMigratePanel(bpy.types.Panel):
+	bl_label = "Armature migration"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
+	bl_category = 'WoW'
+
+	def draw(self, context):
+		layout = self.layout
+		props = context.scene.wow_props
+		layout.prop_search(props, "SourceRemapArmature", context.scene, "objects")
+		layout.prop_search(props, "TargetRemapArmature", context.scene, "objects")
+		row = layout.row()
+		row.prop(props, 'CurrentM2BRFile')
+		row.operator('wowtools.open_m2br', text='', icon='FILE')
+		layout.operator('wowtools.remap_bones')
+
+from bpy_extras.io_utils import ImportHelper
+class OpOpenM2BR(bpy.types.Operator, ImportHelper):
+
+	bl_idname = "wowtools.open_m2br"
+	bl_label = "Open M2BR File"
+
+	# ImportHelper mixin class uses this
+	filename_ext = ".m2br"
+
+	filter_glob = bpy.props.StringProperty(
+			default="*.m2br",
+			options={'HIDDEN'},
+			)
+
+	@classmethod
+	def poll(cls, context):
+		return True
+
+	def execute(self, context):
+		context.scene.wow_props.CurrentM2BRFile = self.properties.filepath
+		return {'FINISHED'}
+
+from .wow_common import *
+class OpDoRemapBones(bpy.types.Operator):
+
+	bl_idname = "wowtools.remap_bones"
+	bl_label = "Migrate"
+
+	@classmethod
+	def poll(cls, context):
+		return len(context.scene.wow_props.CurrentM2BRFile) > 0 and len(context.scene.wow_props.SourceRemapArmature) > 0 and len(context.scene.wow_props.TargetRemapArmature) > 0
+
+	def execute(self, context):
+		SourceArmature = None
+		TargetArmature = None
+		for ob in bpy.context.scene.objects:
+			if ob.type == 'ARMATURE':
+				if ob.name == context.scene.wow_props.SourceRemapArmature:
+					SourceArmature = ob
+				if ob.name == context.scene.wow_props.TargetRemapArmature:
+					TargetArmature = ob
+
+		if SourceArmature is None:
+			raise Exception('Can\'t find source remap armature \'' + context.scene.wow_props.SourceRemapArmature + '\'')
+		if TargetArmature is None:
+			raise Exception('Can\'t find target remap armature \'' + context.scene.wow_props.TargetRemapArmature + '\'')
+
+		if SourceArmature == TargetArmature:
+			raise Exception('Armatures must not be same')
+
+		File = open(context.scene.wow_props.CurrentM2BRFile, 'rb')
+		DataBinary = CDataBinary(File, EEndianness.Little)
+		# load header
+		SignatureIn = DataBinary.ReadUInt32()
+		if SignatureIn != MakeFourCC(b'M2BR'):
+			File.close()
+			raise Exception('Not a M2Br file')
+
+		VersionMajor = DataBinary.ReadUInt16()
+		VersionMinor = DataBinary.ReadUInt16()
+
+		if VersionMajor != 1 and VersionMinor != 0:
+			File.close()
+			raise Exception('Unsupported M2BR version ' + str("%d.%d") % (VersionMajor , VersionMinor))
+			
+		OldBoneToNewBone = dict()
+		MapSize = DataBinary.ReadUInt16()
+		for i in range(0, MapSize):
+			OldBoneId = DataBinary.ReadUInt16()
+			NewBoneId = DataBinary.ReadUInt16()
+			OldBoneToNewBone['Bone' + str('%03d' % OldBoneId)] = 'Bone' + str('%03d' % NewBoneId)
+
+		#for i, j in OldBoneToNewBone.items():
+		#	print(str("%s -> %s\n") % (i, j))
+
+		# modify target armature
+		#BArmature.hide = False
+		bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
+		SourceBones = {}
+		bpy.context.scene.objects.active = SourceArmature
+		bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
+		for sourceBone in SourceArmature.data.edit_bones:
+			bone = CBone()
+			bone.Position[0] = sourceBone.head.x
+			bone.Position[1] = sourceBone.head.y
+			bone.Position[2] = sourceBone.head.z
+			SourceBones[sourceBone.name] = bone
+		bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
+
+		bpy.context.scene.objects.active = TargetArmature
+		bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
+		for name, sourceBone in SourceBones.items():
+			findName = name
+			if name in OldBoneToNewBone:
+				findName = OldBoneToNewBone[name]
+
+			targetBone = TargetArmature.data.edit_bones.get(findName)
+			if targetBone is None:
+				print("Can't find target bone for source bone " + sourceBone.name)
+			else:
+				print("Found " + targetBone.name)
+				print(targetBone.head)
+				targetBone.head.x = sourceBone.Position[0]
+				targetBone.head.y = sourceBone.Position[1]
+				targetBone.head.z = sourceBone.Position[2]
+				targetBone.tail.x = targetBone.head.x
+				targetBone.tail.y = targetBone.head.y + 0.1
+				targetBone.tail.z = targetBone.head.z
+
+		bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
+
+		for ob in bpy.context.scene.objects:
+			if ob.parent != SourceArmature:
+				continue;
+			if ob.type == 'MESH':
+				# rename groups to new names 
+				for i, VertexGroup in enumerate(ob.vertex_groups):
+					if VertexGroup.name in OldBoneToNewBone:
+						VertexGroup.name = '_' + OldBoneToNewBone[VertexGroup.name]
+				# remove tmp _ symbol (guaranteed uniqueness)
+				for i, VertexGroup in enumerate(ob.vertex_groups):
+					if VertexGroup.name.startswith('_'):
+						VertexGroup.name = VertexGroup.name[1:]
+			if ob.type == 'EMPTY' and ob.name.startswith('Attach'):
+				if ob.parent_bone in OldBoneToNewBone:
+					ob.parent_bone = OldBoneToNewBone[ob.parent_bone]
+			# attach to new armature
+			ob.parent = TargetArmature
 
 		return {'FINISHED'}

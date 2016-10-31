@@ -4,12 +4,11 @@ bl_info = {
 	'version': (1, 0, 0),
 	'blender': (2, 73, 0),
 	'api': 36302,
-	#'location': 'Properties space > Scene tab > WoW Tools panel',
 	'location': 'File -> Import/Export',
 	'description': 'Tools to work with M2I format',
 	'warning': '',
 	'wiki_url': '',
-	'tracker_url': '',
+	'tracker_url': 'https://bitbucket.org/suncurio/blender-m2i-scripts',
 	'support': 'COMMUNITY',
 	'category': 'Import-Export'}
 
@@ -21,9 +20,6 @@ from .wow_pose_tools import *
 import bpy
 import re
 
-#******************************
-#---===Register===
-#******************************
 def menu_import_func(self, context):
 	default_path = os.path.splitext(bpy.data.filepath)[0] + '.m2i'
 	self.layout.operator(M2IImporter.bl_idname, text = 'M2 Intermediate (.m2i)').filepath = default_path
@@ -41,13 +37,6 @@ def unregister():
 	bpy.utils.unregister_module(__name__)
 	bpy.types.INFO_MT_file_import.remove(menu_import_func)
 	bpy.types.INFO_MT_file_export.remove(menu_export_func)
-
-	if bpy.context.scene.get('CONFIG_WowTools') != None:
-		del bpy.context.scene['CONFIG_WowTools']
-	try:
-		del bpy.types.Scene.CONFIG_WowTools
-	except:
-		pass
 
 if __name__ == '__main__':
 	register()

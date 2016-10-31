@@ -16,7 +16,7 @@ class OBJECT_PT_WoW_Pose(bpy.types.Panel):
 	bl_idname = 'WoWPoseTools'
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
-	bl_category = 'Tools'
+	bl_category = 'WoW'
 	
 	def draw(self, context):
 		self.layout.operator('scene.wow_create_modifiers', text='Create armature mods');
@@ -116,11 +116,15 @@ bpy.types.WindowManager.iWowTools_WeightThreshold = bpy.props.FloatProperty(
 	soft_max=1.0)
 	
 class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
-	bl_label = "WowTools"
+	bl_label = "Weights cleanup"
 	bl_idname = "wowtools.vertex_ops"
 	bl_space_type = "PROPERTIES"
 	bl_region_type = "WINDOW"
 	bl_context = "data"
+
+	@classmethod
+	def poll(cls, context):
+		return context.active_object is not None and context.active_object.type == 'MESH'
 
 	def draw(self, context):
 
@@ -145,8 +149,7 @@ class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 
 	@classmethod
 	def poll(cls, context):
-
-		return context.active_object is not None
+		return context.active_object is not None and context.active_object.type == 'MESH'
 
 	def execute(self, context):
 
