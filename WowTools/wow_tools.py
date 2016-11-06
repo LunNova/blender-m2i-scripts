@@ -644,10 +644,9 @@ class OpDoRemapBones(bpy.types.Operator):
 		#	print(str("%s -> %s\n") % (i, j))
 
 		# modify target armature
-		#BArmature.hide = False
-		bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
 		SourceBones = {}
 		bpy.context.scene.objects.active = SourceArmature
+		SourceArmature.hide = False
 		bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
 		for sourceBone in SourceArmature.data.edit_bones:
 			bone = CBone()
@@ -658,6 +657,7 @@ class OpDoRemapBones(bpy.types.Operator):
 		bpy.ops.object.mode_set(mode = 'OBJECT', toggle = False)
 
 		bpy.context.scene.objects.active = TargetArmature
+		TargetArmature.hide = False
 		bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
 		for name, sourceBone in SourceBones.items():
 			findName = name

@@ -175,6 +175,7 @@ def DoExport(FileName):
 		Camera = CCamera()
 
 		props = BCamera.data.wow_props
+		Camera.HasData = props.HasData
 		Camera.Type = int(props.Type)
 		Camera.Position[0] = BCamera.location.y
 		Camera.Position[1] = -BCamera.location.x
