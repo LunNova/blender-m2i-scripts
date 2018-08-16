@@ -118,7 +118,7 @@ class OBJECT_OP_Hide_Armors(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20).(?!1)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20|22).(?!1)', ob.name):
 				ob.hide = True
 		return {'FINISHED'}
 		
@@ -140,7 +140,7 @@ class OBJECT_OP_Hide_Body(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201)', ob.name):
 				ob.hide = True
 		return {'FINISHED'}
 		
@@ -218,7 +218,7 @@ class OBJECT_OP_Show_Armors(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20).(?!1)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20|22).(?!1)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
 		
@@ -240,7 +240,7 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
 
