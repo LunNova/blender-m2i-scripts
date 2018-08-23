@@ -249,13 +249,15 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 	@classmethod
 	def register(Wow_Mesh_Props):
 
-		Wow_Mesh_Props.Description = bpy.props.StringProperty(name="Description",
+		Wow_Mesh_Props.Description = bpy.props.StringProperty(
+			name="Description",
 			description="Mesh description")
 		Wow_Mesh_Props.HasCustomTexture = bpy.props.BoolProperty(
 			name="", 
 			description="Mesh has custom texture assigned",
 			default=False)
-		Wow_Mesh_Props.CustomTexture = bpy.props.StringProperty(name="Custom Texture", 
+		Wow_Mesh_Props.CustomTexture = bpy.props.StringProperty(
+			name="Custom Texture", 
 			description="Path to texture")
 		Wow_Mesh_Props.TextureStyle = bpy.props.EnumProperty(
 			name='Texture style',
@@ -271,19 +273,30 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 			default='2'
 			)
 
-		Wow_Mesh_Props.MaterialOverride = bpy.props.StringProperty(name="Material Override", 
+		Wow_Mesh_Props.MaterialOverride = bpy.props.StringProperty(
+			name="Material Override", 
 			description="Mesh from which material should be copied")
-			
+
 		Wow_Mesh_Props.HasGloss = bpy.props.BoolProperty(
 			name="", 
 			description="Mesh has gloss effect assigned",
 			default=False)
-		Wow_Mesh_Props.GlossTexture = bpy.props.StringProperty(name="Gloss Texture", 
+
+		Wow_Mesh_Props.GlossTexture = bpy.props.StringProperty(
+			name='Gloss Texture', 
 			description="Path to gloss texture")
+
+		Wow_Mesh_Props.OriginalMeshIndex = bpy.props.IntProperty(
+			name='Originan mesh index',
+			description="Mesh index from original skin file. Change only if you know what you do",
+			default=-1,
+			min=-1,
+			max=1024)
 
 		bpy.types.Mesh.wow_props = bpy.props.PointerProperty(type=Wow_Mesh_Props, 
 			name="WoW Mesh Properties", 
 			description="WoW Mesh Properties")
+
 	@classmethod
 	def unregister(cls):
 		del bpy.types.Mesh.wow_props
@@ -412,7 +425,8 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 			layout.prop(props, 'HasGloss', text="Enable gloss texture")
 			box = layout.box()
 			box.prop(props, 'GlossTexture')
-			layout.prop_search(props, "MaterialOverride", context.scene, "objects")
+			layout.prop_search(props, 'MaterialOverride', context.scene, "objects")
+			layout.prop(props, 'OriginalMeshIndex')
 			if not props.HasGloss:
 				box.active = False
 		elif targetType == "CAMERA":

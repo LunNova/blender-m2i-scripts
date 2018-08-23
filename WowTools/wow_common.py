@@ -88,7 +88,8 @@ class CMesh:
 		This.TextureStyle = 0
 		This.HasGloss = False
 		This.GlossTexture = ""
-		
+		This.OriginalMeshIndex = -1
+
 	def AddTriangle(This, VertexA, VertexB, VertexC):
 		Triangle = CMesh.CTriangle()
 		Triangle.A = This.AddVertex(VertexA)

@@ -59,6 +59,8 @@ def DoExport(FileName):
 		Mesh.HasGloss = props.HasGloss
 		Mesh.GlossTexture = props.GlossTexture
 
+		Mesh.OriginalMeshIndex = props.OriginalMeshIndex
+
 		Mesh.Description = props.Description
 
 		Mesh.ID = id
@@ -221,7 +223,6 @@ def DoExport(FileName):
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
 	for Mesh in MeshList:
-		#DataBinary.WriteUInt32(Mesh.ID) #ID. Normally is a UInt16.
 		DataBinary.WriteUInt16(Mesh.ID)
 		DataBinary.WriteNullterminatedString(Mesh.Description)
 		DataBinary.WriteSInt16(Mesh.MaterialOverride)
@@ -230,6 +231,8 @@ def DoExport(FileName):
 		DataBinary.WriteUInt16(Mesh.TextureStyle)
 		DataBinary.WriteUInt8(Mesh.HasGloss)
 		DataBinary.WriteNullterminatedString(Mesh.GlossTexture)
+		DataBinary.WriteSInt32(Mesh.OriginalMeshIndex)
+
 		DataBinary.WriteUInt16(0) # Level.
 		DataBinary.WriteUInt32(len(Mesh.VertexList))
 		

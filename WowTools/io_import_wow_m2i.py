@@ -43,7 +43,10 @@ def DoImport(FileName):
 				Mesh.TextureStyle = DataBinary.ReadUInt16()
 				Mesh.HasGloss = DataBinary.ReadUInt8() != 0
 			Mesh.GlossTexture = DataBinary.ReadNullterminatedString()
-		
+
+		if Version >= MakeVersion(8, 0):
+			Mesh.OriginalMeshIndex = DataBinary.ReadSInt32()
+
 		Mesh.Level = DataBinary.ReadUInt16()
 		VertexCount = DataBinary.ReadUInt32()
 		
@@ -282,6 +285,7 @@ def DoImport(FileName):
 		BMesh.data.wow_props.TextureStyle = str(Mesh.TextureStyle)
 		BMesh.data.wow_props.HasGloss = Mesh.HasGloss
 		BMesh.data.wow_props.GlossTexture = Mesh.GlossTexture
+		BMesh.data.wow_props.OriginalMeshIndex = Mesh.OriginalMeshIndex
 		if Mesh.MaterialOverride is not None and Mesh.MaterialOverride >= 0:
 			BMesh['TmpMaterialOverride'] = Mesh.MaterialOverride
 		MeshResultNames[k] = BMesh.name
