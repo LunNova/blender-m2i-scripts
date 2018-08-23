@@ -65,12 +65,26 @@ def DoExport(FileName):
 
 		for iFace, BFace in enumerate(BMesh.data.polygons):
 			FaceUVs = []
-			
+			FaceUVs2 = []
+
 			for i in BFace.loop_indices: # <-- python Range object with the proper indices already set.
 				l = BMesh.data.loops[i] # The loop entry this polygon point refers to.
-				for j,ul in enumerate(BMesh.data.uv_layers):
-					FaceUVs.append([ul.data[l.index].uv[0], ul.data[l.index].uv[1]])
-			
+
+				tFound = False
+				t2Found = False
+				for j, ul in enumerate(BMesh.data.uv_layers):
+					if ul.name == 'Texture' or ul.name == 'UVMap':
+						tFound = True
+						FaceUVs.append([ul.data[l.index].uv[0], ul.data[l.index].uv[1]])
+					elif ul.name == 'Texture2':
+						t2Found = True
+						FaceUVs2.append([ul.data[l.index].uv[0], ul.data[l.index].uv[1]])
+
+				if not tFound:
+					FaceUVs.append([0, 0])
+				if not t2Found:
+					FaceUVs2.append([0, 0])
+
 			# build vertex list for this face
 			FaceVertexList = []
 			for iFaceVertex, VertexIndex in enumerate(BFace.vertices):
@@ -92,6 +106,9 @@ def DoExport(FileName):
 				# texture
 				Vertex.Texture[0] = FaceUVs[iFaceVertex][0]
 				Vertex.Texture[1] = 1.0-FaceUVs[iFaceVertex][1]
+
+				Vertex.Texture2[0] = FaceUVs2[iFaceVertex][0]
+				Vertex.Texture2[1] = 1.0-FaceUVs2[iFaceVertex][1]
 				#
 				VertexInfluences = []
 				for BVertexGroupElement in BVertex.groups:
@@ -198,8 +215,8 @@ def DoExport(FileName):
 	
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
-	DataBinary.WriteUInt16(4)
-	DataBinary.WriteUInt16(9)
+	DataBinary.WriteUInt16(8)
+	DataBinary.WriteUInt16(0)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
@@ -233,14 +250,16 @@ def DoExport(FileName):
 			DataBinary.WriteFloat32(Vertex.Normal[2])
 			DataBinary.WriteFloat32(Vertex.Texture[0])
 			DataBinary.WriteFloat32(Vertex.Texture[1])
-			
+			DataBinary.WriteFloat32(Vertex.Texture2[0])
+			DataBinary.WriteFloat32(Vertex.Texture2[1])
+
 		DataBinary.WriteUInt32(len(Mesh.TriangleList))
-		
+
 		for Triangle in Mesh.TriangleList:
 			DataBinary.WriteUInt16(Triangle.A)
 			DataBinary.WriteUInt16(Triangle.B)
 			DataBinary.WriteUInt16(Triangle.C)
-	
+
 	# save bone list
 	DataBinary.WriteUInt32(len(BoneList))
 	for Bone in BoneList:

@@ -23,7 +23,7 @@ def DoImport(FileName):
 	VersionMinor = DataBinary.ReadUInt16()
 	Version = MakeVersion(VersionMajor, VersionMinor)
 	
-	if VersionMajor != 4 or VersionMinor < 5 or VersionMinor > 9:
+	if not (Version >= MakeVersion(4, 5) and Version <= MakeVersion(4,9)) and Version < MakeVersion(8, 0):
 		File.close()
 		raise Exception('Unsupported M2I version ' + str("%d.%d") % (VersionMajor , VersionMinor))
 	
@@ -65,6 +65,10 @@ def DoImport(FileName):
 			Vertex.Normal[2] = DataBinary.ReadFloat32()
 			Vertex.Texture[0] = DataBinary.ReadFloat32()
 			Vertex.Texture[1] = DataBinary.ReadFloat32()
+			if Version >= MakeVersion(8, 0):
+				Vertex.Texture2[0] = DataBinary.ReadFloat32()
+				Vertex.Texture2[1] = DataBinary.ReadFloat32()
+
 			Mesh.VertexList.append(Vertex)
 			
 		TriangleCount = DataBinary.ReadUInt32()
@@ -229,14 +233,15 @@ def DoImport(FileName):
 			#BVertex.normal.x = -Vertex.Normal[1] # we don't need to import normals because they will be calculated automatically by Blender
 			#BVertex.normal.y = Vertex.Normal[0]
 			#BVertex.normal.z = Vertex.Normal[2]
-		##BMeshData.faces.add(len(Mesh.TriangleList)) # add triangles to mesh data.
+
 		BMeshData.tessfaces.add(len(Mesh.TriangleList)) # add triangles to mesh data.
-		##BMeshTextureFaceLayer = BMeshData.uv_textures.new(name = 'UVMap')
-		BMeshTextureFaceLayer = BMeshData.tessface_uv_textures.new(name = 'UVMap')
+
+		BMeshTextureFaceLayer = BMeshData.tessface_uv_textures.new(name = 'Texture')
+		BMeshTextureFaceLayer2 = BMeshData.tessface_uv_textures.new(name = 'Texture2')
 		for i, Triangle in enumerate(Mesh.TriangleList):
-			##BFace = BMeshData.faces[i]
 			BFace = BMeshData.tessfaces[i]
 			BFace.vertices = [Triangle.A, Triangle.B, Triangle.C]	# reverse the wind order so normals point out.
+
 			BMeshTextureFace = BMeshTextureFaceLayer.data[i]
 			BMeshTextureFace.uv1[0] = Mesh.VertexList[Triangle.A].Texture[0]
 			BMeshTextureFace.uv1[1] = 1.0 - Mesh.VertexList[Triangle.A].Texture[1]
@@ -244,7 +249,17 @@ def DoImport(FileName):
 			BMeshTextureFace.uv2[1] = 1.0 - Mesh.VertexList[Triangle.B].Texture[1]
 			BMeshTextureFace.uv3[0] = Mesh.VertexList[Triangle.C].Texture[0]
 			BMeshTextureFace.uv3[1] = 1.0 - Mesh.VertexList[Triangle.C].Texture[1]
+
+			BMeshTextureFace2 = BMeshTextureFaceLayer2.data[i]
+			BMeshTextureFace2.uv1[0] = Mesh.VertexList[Triangle.A].Texture2[0]
+			BMeshTextureFace2.uv1[1] = 1.0 - Mesh.VertexList[Triangle.A].Texture2[1]
+			BMeshTextureFace2.uv2[0] = Mesh.VertexList[Triangle.B].Texture2[0]
+			BMeshTextureFace2.uv2[1] = 1.0 - Mesh.VertexList[Triangle.B].Texture2[1]
+			BMeshTextureFace2.uv3[0] = Mesh.VertexList[Triangle.C].Texture2[0]
+			BMeshTextureFace2.uv3[1] = 1.0 - Mesh.VertexList[Triangle.C].Texture2[1]
+
 			BFace.use_smooth = True
+
 		for Bone in BoneList:
 			BVertexGroup = BMesh.vertex_groups.new('Bone' + str('%03d' % Bone.Index))
 		for i, Vertex in enumerate(Mesh.VertexList):

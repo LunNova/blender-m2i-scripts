@@ -64,10 +64,11 @@ class CMesh:
 			This.BoneIndices = [0, 0, 0, 0]
 			This.Normal = [0.0, 0.0, 0.0]
 			This.Texture = [0.0, 0.0]
+			This.Texture2 = [0.0, 0.0]
 			This.Index = 0
 
 		def Compare(A, B):
-			return (A.Position == B.Position) and (A.Normal == B.Normal) and (A.Texture == B.Texture)
+			return (A.Position == B.Position) and (A.Normal == B.Normal) and (A.Texture == B.Texture) and (A.Texture2 == B.Texture2)
 
 	class CTriangle:
 		def __init__(This):
