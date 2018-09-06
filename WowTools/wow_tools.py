@@ -140,7 +140,7 @@ class OBJECT_OP_Hide_Body(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201|2301)', ob.name):
 				ob.hide = True
 		return {'FINISHED'}
 		
@@ -240,7 +240,7 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201)', ob.name):
+			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201|2301)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
 
