@@ -66,9 +66,10 @@ class CMesh:
 			This.Texture = [0.0, 0.0]
 			This.Texture2 = [0.0, 0.0]
 			This.Index = 0
+			This.MeshSrcIndex = 0
 
 		def Compare(A, B):
-			return (A.Position == B.Position) and (A.Normal == B.Normal) and (A.Texture == B.Texture) and (A.Texture2 == B.Texture2)
+			return (A.MeshSrcIndex == B.MeshSrcIndex)
 
 	class CTriangle:
 		def __init__(This):
