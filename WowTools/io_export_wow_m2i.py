@@ -92,9 +92,6 @@ def DoExport(FileName):
 			for iFaceVertex, VertexIndex in enumerate(BFace.vertices):
 				BVertex = BMesh.data.vertices[VertexIndex]
 				Vertex = CMesh.CVertex()
-
-				Vertex.MeshSrcIndex = VertexIndex
-
 				# position
 				Vertex.Position[0] = BVertex.co.y
 				Vertex.Position[1] = -BVertex.co.x
