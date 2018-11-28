@@ -23,10 +23,12 @@ def DoImport(FileName):
 	VersionMinor = DataBinary.ReadUInt16()
 	Version = MakeVersion(VersionMajor, VersionMinor)
 	
-	if not (Version >= MakeVersion(4, 5) and Version <= MakeVersion(4,9)) and Version < MakeVersion(8, 0):
+	if not (Version >= MakeVersion(4, 5) and Version <= MakeVersion(4, 9)) and not(Version >= MakeVersion(8, 0) and Version <= MakeVersion(8, 1)):
 		File.close()
 		raise Exception('Unsupported M2I version ' + str("%d.%d") % (VersionMajor , VersionMinor))
-	
+
+	print("M2I Version: " + str("%d.%d") % (VersionMajor , VersionMinor))
+
 	# load mesh list
 	MeshCount = DataBinary.ReadUInt32()
 	for i in range(0, MeshCount):
@@ -36,13 +38,32 @@ def DoImport(FileName):
 			Mesh.Description = DataBinary.ReadNullterminatedString()
 		if Version >= MakeVersion(4, 7):
 			Mesh.MaterialOverride = DataBinary.ReadSInt16()
-			if Version >= MakeVersion(4, 9):
-				Mesh.HasCustomTexture = DataBinary.ReadUInt8() != 0
-			Mesh.CustomTexture = DataBinary.ReadNullterminatedString()
-			if Version >= MakeVersion(4, 9):
-				Mesh.TextureStyle = DataBinary.ReadUInt16()
-				Mesh.HasGloss = DataBinary.ReadUInt8() != 0
-			Mesh.GlossTexture = DataBinary.ReadNullterminatedString()
+
+			if Version >= MakeVersion(8, 1):
+				print("Entered")
+				Mesh.ShaderId = DataBinary.ReadSInt32()
+				Mesh.BlendMode = DataBinary.ReadSInt16()
+				Mesh.RenderFlags = DataBinary.ReadUInt16()
+				for j in range(0, 4):
+					Mesh.TextureTypes[j] = DataBinary.ReadSInt16()
+					Mesh.TextureNames[j] = DataBinary.ReadNullterminatedString()
+			else:
+				print("Entered old")
+				if Version >= MakeVersion(4, 9):
+					DataBinary.ReadUInt8() != 0 # HasCustomTexture
+				Mesh.TextureNames[0] = DataBinary.ReadNullterminatedString()
+				if len(Mesh.TextureNames[0]) > 0:
+					Mesh.TextureTypes[0] = 0 # final hardcoded
+					Mesh.RenderFlags = 0x4 # TwoSided
+				if Version >= MakeVersion(4, 9):
+					Mesh.BlendMode = DataBinary.ReadUInt16()
+					DataBinary.ReadUInt8() != 0 # has gloss
+				else:
+					Mesh.BlendMode = 2 # decal
+				Mesh.TextureNames[1] = DataBinary.ReadNullterminatedString()
+				if len(Mesh.TextureNames[1]) > 0:
+					Mesh.ShaderId = 32769 # gloss shader id
+					Mesh.TextureTypes[1] = 0 # final hardcoded
 
 		if Version >= MakeVersion(8, 0):
 			Mesh.OriginalMeshIndex = DataBinary.ReadSInt32()
@@ -73,9 +94,9 @@ def DoImport(FileName):
 				Vertex.Texture2[1] = DataBinary.ReadFloat32()
 
 			Mesh.VertexList.append(Vertex)
-			
+
 		TriangleCount = DataBinary.ReadUInt32()
-		
+
 		for j in range(0, TriangleCount):
 			Triangle = CMesh.CTriangle()
 			Triangle.A = DataBinary.ReadUInt16()
@@ -278,14 +299,24 @@ def DoImport(FileName):
 		BArmatureModifier.use_vertex_groups = True
 		BMesh.parent = BArmature
 		BMesh.select = False
-		
+
 		BMesh.data.wow_props.Description = Mesh.Description
-		BMesh.data.wow_props.HasCustomTexture = Mesh.HasCustomTexture
-		BMesh.data.wow_props.CustomTexture = Mesh.CustomTexture
-		BMesh.data.wow_props.TextureStyle = str(Mesh.TextureStyle)
-		BMesh.data.wow_props.HasGloss = Mesh.HasGloss
-		BMesh.data.wow_props.GlossTexture = Mesh.GlossTexture
+		BMesh.data.wow_props.ShaderId = str(Mesh.ShaderId)
+		BMesh.data.wow_props.RenderFlags = RenderFlagsToSet(Mesh.RenderFlags)
+		BMesh.data.wow_props.BlendMode = str(Mesh.BlendMode)
+
+		BMesh.data.wow_props.TextureType0 = str(Mesh.TextureTypes[0])
+		BMesh.data.wow_props.TextureType1 = str(Mesh.TextureTypes[1])
+		BMesh.data.wow_props.TextureType2 = str(Mesh.TextureTypes[2])
+		BMesh.data.wow_props.TextureType3 = str(Mesh.TextureTypes[3])
+
+		BMesh.data.wow_props.TextureName0 = Mesh.TextureNames[0]
+		BMesh.data.wow_props.TextureName1 = Mesh.TextureNames[1]
+		BMesh.data.wow_props.TextureName2 = Mesh.TextureNames[2]
+		BMesh.data.wow_props.TextureName3 = Mesh.TextureNames[3]
+
 		BMesh.data.wow_props.OriginalMeshIndex = Mesh.OriginalMeshIndex
+
 		if Mesh.MaterialOverride is not None and Mesh.MaterialOverride >= 0:
 			BMesh['TmpMaterialOverride'] = Mesh.MaterialOverride
 		MeshResultNames[k] = BMesh.name

@@ -20,6 +20,31 @@ from .wow_pose_tools import *
 import bpy
 import re
 
+from bpy.app.handlers import persistent
+
+@persistent
+def SetupFromOldProperties(props):
+	if props.HasCustomTexture:
+		props.HasCustomTexture = False
+		props.TextureType0 = '0' # Hardcoded
+		props.TextureName0 = props.CustomTexture
+		props.BlendMode = props.TextureStyle
+		props.RenderFlags = { '3' } # TwoSided
+
+	if props.HasGloss:
+		props.HasGloss = False
+		props.ShaderId = '32769'
+		props.TextureType1 = '0' # Hardcoded
+		props.TextureName1 = props.GlossTexture
+
+@persistent
+def convert_properties(self):
+	for obj in bpy.data.objects:
+		if obj.type != "MESH":
+			continue
+		props = obj.data.wow_props
+		SetupFromOldProperties(props)
+
 def menu_import_func(self, context):
 	default_path = os.path.splitext(bpy.data.filepath)[0] + '.m2i'
 	self.layout.operator(M2IImporter.bl_idname, text = 'M2 Intermediate (.m2i)').filepath = default_path
@@ -32,6 +57,8 @@ def register():
 	bpy.utils.register_module(__name__)
 	bpy.types.INFO_MT_file_import.prepend(menu_import_func)
 	bpy.types.INFO_MT_file_export.prepend(menu_export_func)
+	
+	bpy.app.handlers.load_post.append(convert_properties)
 	
 def unregister():
 	bpy.utils.unregister_module(__name__)

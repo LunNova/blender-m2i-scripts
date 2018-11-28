@@ -1,6 +1,9 @@
 import os
 import struct
 
+import bpy
+from enum import Enum
+
 def MakeFourCC(Value):
 	return struct.unpack('<I', Value)[0]
 
@@ -83,12 +86,18 @@ class CMesh:
 		This.TriangleList = []
 		This.VertexDict = {}
 		This.MaterialOverride = None
-		This.HasCustomTexture = False
-		This.CustomTexture = ""
-		This.TextureStyle = 0
-		This.HasGloss = False
-		This.GlossTexture = ""
+		This.ShaderId = -1
+		This.BlendMode = -1
+		This.RenderFlags = 0
+		This.TextureTypes = [ -1, -1, -1, -1 ]
+		This.TextureNames = ["", "", "" ,"" ]
 		This.OriginalMeshIndex = -1
+
+		#This.HasCustomTexture = False
+		#This.GlossTexture = ""
+		#This.HasGloss = False
+		#This.TextureStyle = 0
+		#This.CustomTexture = ""
 
 	def AddTriangle(This, VertexA, VertexB, VertexC):
 		Triangle = CMesh.CTriangle()
@@ -138,3 +147,60 @@ class CCamera:
 		This.ClipNear = 0.5
 		This.Position = [0.0, 0.0, 0.0]
 		This.Target = [0.0, 0.0, 0.0]
+
+def RenderFlagsToSet(Flags):
+	s = set()
+
+	renderFlagItems = bpy.types.Mesh.bl_rna.properties['wow_props'].fixed_type.RenderFlags[1]['items']
+	for renderFlagTuple in renderFlagItems:
+		if (Flags & renderFlagTuple[4]) != 0:
+			s.add(renderFlagTuple[0])
+
+	return s
+
+def RenderFlagsFromSet(Set):
+	value = 0
+
+	renderFlagItems = bpy.types.Mesh.bl_rna.properties['wow_props'].fixed_type.RenderFlags[1]['items']
+	for renderFlagTuple in renderFlagItems:
+		if renderFlagTuple[0] in Set:
+			value |= renderFlagTuple[4]
+
+	return value
+
+opCountByShader = {
+	32768: 2,
+	32769: 2,
+	32770: 2,
+	32771: 3,
+	32772: 2,
+	32773: 2,
+	32774: 2,
+	32775: 2,
+	32776: 2,
+	32777: 3,
+	32778: 2,
+	32779: 2,
+	32780: 2,
+	32781: 2,
+	32782: 2,
+	32783: 2,
+	32784: 2,
+	32785: 3,
+	32786: 1,
+	32787: 1,
+	32788: 3,
+	32789: 2,
+	32790: 2,
+	32791: 2,
+	32792: 3,
+	32793: 1,
+	32794: 2,
+	32795: 3,
+	32796: 2,
+	32797: 2,
+	32798: 3,
+	32799: 3,
+	32800: 1,
+	32801: 2
+}

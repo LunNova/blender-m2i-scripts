@@ -252,6 +252,137 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 		Wow_Mesh_Props.Description = bpy.props.StringProperty(
 			name="Description",
 			description="Mesh description")
+
+		Wow_Mesh_Props.MaterialOverride = bpy.props.StringProperty(
+			name="Material Override", 
+			description="Mesh from which material should be copied")
+
+		Wow_Mesh_Props.ShaderId = bpy.props.IntProperty(
+			name='Shader',
+			description="Shader",
+			default=-1,
+			min=-1)
+
+		Wow_Mesh_Props.OriginalMeshIndex = bpy.props.IntProperty(
+			name='Originan mesh index',
+			description="Mesh index from original skin file. Change only if you know what you do",
+			default=-1,
+			min=-1,
+			max=1024)
+
+		Wow_Mesh_Props.BlendMode = bpy.props.EnumProperty(
+			name='Blend mode',
+			description='Blend mode',
+			items=[
+				('-1', 'None', 'Not set'),
+				('0', 'Opaque', 'Opaque texture'),
+				('1', 'Mod', ''),
+				('2', 'Decal', 'Use for textures with transparencies'),
+				('3', 'Add', ''),
+				('4', 'Mod2x', ''),
+				('5', 'Fade', ''),
+				('6', 'Unknown6', ''),
+				('7', 'Unknown7', '')
+				],
+			default='-1'
+			)
+
+		Wow_Mesh_Props.RenderFlags = bpy.props.EnumProperty(
+			name='Render flags',
+			description='Render flags',
+			items=[
+				('0', 'None', '', '', 0),
+				('1', 'Unlit', '', 'None', 0x1),
+				('2', 'Unfogged', '', 'None', 0x2),
+				('3', 'TwoSided', '', 'None', 0x4),
+				('4', 'BillBoard', '', 'None', 0x8),
+				('5', 'NoZBuffer', '', 'None', 0x10),
+				('6', 'Unk6', '', 'None', 0x40),
+				('7', 'Unk7', '', 'None', 0x80),
+				('8', 'Unk8', '', 'None', 0x400),
+				('9', 'Unk9', '', 'None', 0x800)
+				],
+			default={'3'},
+			options={'ENUM_FLAG'}
+			)
+
+		Wow_Mesh_Props.ShaderId = bpy.props.EnumProperty(
+			name='Shader Id',
+			description='Shader Id',
+			items=[
+				( '-1', 'None', '' ),
+				( '32768', '0 - Combiners_Opaque_Mod2xNA_Alpha - Diffuse_T1_Env', '' ),
+				( '32769', '1 - Combiners_Opaque_AddAlpha - Diffuse_T1_Env', '' ),
+				( '32770', '2 - Combiners_Opaque_AddAlpha_Alpha - Diffuse_T1_Env', '' ),
+				( '32771', '3 - Combiners_Opaque_Mod2xNA_Alpha_Add - Diffuse_T1_Env_T1', '' ),
+				( '32772', '4 - Combiners_Mod_AddAlpha - Diffuse_T1_Env', '' ),
+				( '32773', '5 - Combiners_Opaque_AddAlpha - Diffuse_T1_T1', '' ),
+				( '32774', '6 - Combiners_Mod_AddAlpha - Diffuse_T1_T1', '' ),
+				( '32775', '7 - Combiners_Mod_AddAlpha_Alpha - Diffuse_T1_Env', '' ),
+				( '32776', '8 - Combiners_Opaque_Alpha_Alpha - Diffuse_T1_Env', '' ),
+				( '32777', '9 - Combiners_Opaque_Mod2xNA_Alpha_3s - Diffuse_T1_Env_T1', '' ),
+				( '32778', '10 - Combiners_Opaque_AddAlpha_Wgt - Diffuse_T1_T1', '' ),
+				( '32779', '11 - Combiners_Mod_Add_Alpha - Diffuse_T1_Env', '' ),
+				( '32780', '12 - Combiners_Opaque_ModNA_Alpha - Diffuse_T1_Env', '' ),
+				( '32781', '13 - Combiners_Mod_AddAlpha_Wgt - Diffuse_T1_Env', '' ),
+				( '32782', '14 - Combiners_Mod_AddAlpha_Wgt - Diffuse_T1_T1', '' ),
+				( '32783', '15 - Combiners_Opaque_AddAlpha_Wgt - Diffuse_T1_T2', '' ),
+				( '32784', '16 - Combiners_Opaque_Mod_Add_Wgt - Diffuse_T1_Env', '' ),
+				( '32785', '17 - Combiners_Opaque_Mod2xNA_Alpha_UnshAlpha - Diffuse_T1_Env_T1', '' ),
+				( '32786', '18 - Combiners_Mod_Dual_Crossfade - Diffuse_T1', '' ),
+				( '32787', '19 - Combiners_Mod_Depth - Diffuse_EdgeFade_T1', '' ),
+				( '32788', '20 - Combiners_Opaque_Mod2xNA_Alpha_Alpha - Diffuse_T1_Env_T2', '' ),
+				( '32789', '21 - Combiners_Mod_Mod - Diffuse_EdgeFade_T1_T2', '' ),
+				( '32790', '22 - Combiners_Mod_Masked_Dual_Crossfade - Diffuse_T1_T2', '' ),
+				( '32791', '23 - Combiners_Opaque_Alpha - Diffuse_T1_T1', '' ),
+				( '32792', '24 - Combiners_Opaque_Mod2xNA_Alpha_UnshAlpha - Diffuse_T1_Env_T2', '' ),
+				( '32793', '25 - Combiners_Mod_Depth - Diffuse_EdgeFade_Env', '' ),
+				( '32794', '26 - Guild - Diffuse_T1_T2_T1', '' ),
+				( '32795', '27 - Guild_NoBorder - Diffuse_T1_T2', '' ),
+				( '32796', '28 - Guild_Opaque - Diffuse_T1_T2_T1', '' ),
+				( '32797', '29 - Illum - Diffuse_T1_T1', '' ),
+				( '32798', '30 - Combiners_Mod_Mod_Mod_Const - Diffuse_T1_T2_T3', '' ),
+				( '32799', '31 - Combiners_Mod_Mod_Mod_Const - Color_T1_T2_T3', '' ),
+				( '32800', '32 - Combiners_Opaque - Diffuse_T1', '' ),
+				( '32801', '33 - Combiners_Mod_Mod2x - Diffuse_EdgeFade_T1_T2', '' )
+				],
+			default='-1'
+			)
+
+		textureTypeItems = [
+				('-1', 'None', ''),
+				('0', 'Hardcoded', ''),
+				('1', 'Skin', ''),
+				('2', 'ObjectSkin', ''),
+				('3', 'WeaponBlade', ''),
+				('4', 'WeaponHandle', ''),
+				('5', 'Environment', ''),
+				('6', 'Hair', ''),
+				('7', 'FacialHair', ''),
+				('8', 'SkinExtra', ''),
+				('9', 'UiSkin', ''),
+				('10', 'TaurenMane', ''),
+				('11', 'Monster1', ''),
+				('12', 'Monster2', ''),
+				('13', 'Monster3', ''),
+				('14', 'ItemIcon', ''),
+				('15', 'GuildBackgroundColor', ''),
+				('16', 'GuildEmblemColor', ''),
+				('17', 'GuildBorderColor', ''),
+				('18', 'GuildEmblem', '')
+				];
+
+		Wow_Mesh_Props.TextureType0 = bpy.props.EnumProperty(name='Texture type 0', description='Texture type 0', items=textureTypeItems, default='-1')
+		Wow_Mesh_Props.TextureType1 = bpy.props.EnumProperty(name='Texture type 1', description='Texture type 1', items=textureTypeItems, default='0')
+		Wow_Mesh_Props.TextureType2 = bpy.props.EnumProperty(name='Texture type 2', description='Texture type 2', items=textureTypeItems, default='0')
+		Wow_Mesh_Props.TextureType3 = bpy.props.EnumProperty(name='Texture type 3', description='Texture type 3', items=textureTypeItems, default='0')
+
+		Wow_Mesh_Props.TextureName0 = bpy.props.StringProperty(name="Texture 0", description="Path to texture relative to WoW directory")
+		Wow_Mesh_Props.TextureName1 = bpy.props.StringProperty(name="Texture 1", description="Path to texture relative to WoW directory")
+		Wow_Mesh_Props.TextureName2 = bpy.props.StringProperty(name="Texture 2", description="Path to texture relative to WoW directory")
+		Wow_Mesh_Props.TextureName3 = bpy.props.StringProperty(name="Texture 3", description="Path to texture relative to WoW directory")
+
+		# legacy
 		Wow_Mesh_Props.HasCustomTexture = bpy.props.BoolProperty(
 			name="", 
 			description="Mesh has custom texture assigned",
@@ -259,10 +390,12 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 		Wow_Mesh_Props.CustomTexture = bpy.props.StringProperty(
 			name="Custom Texture", 
 			description="Path to texture")
+
 		Wow_Mesh_Props.TextureStyle = bpy.props.EnumProperty(
 			name='Texture style',
 			description='Style of texture (blending mode)',
-			items=[('0', 'Opaque', 'Opaque texture'),
+			items=[
+				('0', 'Opaque', 'Opaque texture'),
 				('1', 'Mod', ''),
 				('2', 'Decal', 'Use for textures with transparencies'),
 				('3', 'Add', ''),
@@ -273,10 +406,6 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 			default='2'
 			)
 
-		Wow_Mesh_Props.MaterialOverride = bpy.props.StringProperty(
-			name="Material Override", 
-			description="Mesh from which material should be copied")
-
 		Wow_Mesh_Props.HasGloss = bpy.props.BoolProperty(
 			name="", 
 			description="Mesh has gloss effect assigned",
@@ -285,13 +414,7 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 		Wow_Mesh_Props.GlossTexture = bpy.props.StringProperty(
 			name='Gloss Texture', 
 			description="Path to gloss texture")
-
-		Wow_Mesh_Props.OriginalMeshIndex = bpy.props.IntProperty(
-			name='Originan mesh index',
-			description="Mesh index from original skin file. Change only if you know what you do",
-			default=-1,
-			min=-1,
-			max=1024)
+		# end legacy
 
 		bpy.types.Mesh.wow_props = bpy.props.PointerProperty(type=Wow_Mesh_Props, 
 			name="WoW Mesh Properties", 
@@ -330,7 +453,7 @@ class Wow_Camera_Props(bpy.types.PropertyGroup):
 			default=0.0,
 			precision=5,
 			subtype='FACTOR',
-			unit='NONE')	
+			unit='NONE')
 		Wow_Camera_Props.Type = bpy.props.EnumProperty(
 			name='Camera type',
 			description='Style of texture',
@@ -384,7 +507,7 @@ class Wow_EditBone_Props(bpy.types.PropertyGroup):
 	@classmethod
 	def unregister(cls):
 		del bpy.types.EditBone.wow_props
-	
+
 class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 	bl_label = "WoW Properies"
 	bl_idname = "wowtools.mesh_ops"
@@ -393,7 +516,6 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 	bl_context = "object"
 
 	def draw(self, context):
-
 		layout = self.layout
 
 		oTargetObject = context.active_object
@@ -407,28 +529,48 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 				targetType = "CAMERA"
 		if oTargetBone is not None and (bpy.context.active_object.mode == 'EDIT' or bpy.context.active_object.mode == 'POSE'):
 			targetType = "BONE"
-			
+
 		if targetType == "":
 			layout.operator("wowtools.transfer_old_properties")
 			return
 
 		if targetType == "MESH":
 			props = oTargetObject.data.wow_props
-			layout.prop(props, 'Description')
-			layout.prop(props, 'HasCustomTexture', text="Enable custom texture")
-			box = layout.box()
-			box.prop(props, 'CustomTexture')
-			box.prop(props, 'TextureStyle')
-			if not props.HasCustomTexture:
-				box.active = False
 
-			layout.prop(props, 'HasGloss', text="Enable gloss texture")
-			box = layout.box()
-			box.prop(props, 'GlossTexture')
+			textureBox = layout.box()
+			textureBox.label("Custom texture:")
+			textureBox.prop(props, 'TextureType0', text='')
+			if props.TextureType0 == '0':
+				textureBox.prop(props, 'TextureName0', text='Path')
+
+			flagsBox = layout.box()
+			flagsBox.label("Blend Mode")
+			flagsBox.prop(props, 'BlendMode', text='')
+			
+			if props.BlendMode != '-1':
+				flagsBox.label("Render Flags")
+				flagsBox.prop(props, 'RenderFlags')
+
+			boxShader = layout.box();
+			boxShader.prop(props, 'ShaderId', text="Shader")
+
+			if props.ShaderId != '-1':
+				if int(props.ShaderId) not in opCountByShader:
+					props.ShaderId = '-1';
+				else:
+					textrureCount = opCountByShader[int(props.ShaderId)]
+					if textrureCount > 1:
+						boxShader.label("Shader textures:")
+					for i in range(1, textrureCount):
+						box = boxShader.box()
+						box.prop(props, 'TextureType' + str(i), text='')
+						type = getattr(props, 'TextureType' + str(i))
+						if type == '0':
+							box.prop(props, 'TextureName' + str(i), text='')
+
 			layout.prop_search(props, 'MaterialOverride', context.scene, "objects")
 			layout.prop(props, 'OriginalMeshIndex')
-			if not props.HasGloss:
-				box.active = False
+			layout.prop(props, 'Description')
 		elif targetType == "CAMERA":
 			props = oTargetObject.data.wow_props
 			layout.prop(props, 'HasData', text="Enable camera modify")

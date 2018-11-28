@@ -52,12 +52,19 @@ def DoExport(FileName):
 		else:
 			Mesh.MaterialOverride = -1
 
-		Mesh.HasCustomTexture = props.HasCustomTexture
-		Mesh.CustomTexture = props.CustomTexture
-		Mesh.TextureStyle = int(props.TextureStyle)
+		Mesh.ShaderId = int(props.ShaderId)
+		Mesh.BlendMode = int(props.BlendMode)
+		Mesh.RenderFlags = RenderFlagsFromSet(props.RenderFlags)
 
-		Mesh.HasGloss = props.HasGloss
-		Mesh.GlossTexture = props.GlossTexture
+		Mesh.TextureTypes[0] = int(props.TextureType0)
+		Mesh.TextureTypes[1] = int(props.TextureType1)
+		Mesh.TextureTypes[2] = int(props.TextureType2)
+		Mesh.TextureTypes[3] = int(props.TextureType3)
+
+		Mesh.TextureNames[0] = props.TextureName0
+		Mesh.TextureNames[1] = props.TextureName1
+		Mesh.TextureNames[2] = props.TextureName2
+		Mesh.TextureNames[3] = props.TextureName3
 
 		Mesh.OriginalMeshIndex = props.OriginalMeshIndex
 
@@ -218,7 +225,7 @@ def DoExport(FileName):
 	# save header
 	DataBinary.WriteUInt32(MakeFourCC(b'M2I0'))
 	DataBinary.WriteUInt16(8)
-	DataBinary.WriteUInt16(0)
+	DataBinary.WriteUInt16(1)
 	
 	# save mesh list
 	DataBinary.WriteUInt32(len(MeshList))
@@ -226,11 +233,14 @@ def DoExport(FileName):
 		DataBinary.WriteUInt16(Mesh.ID)
 		DataBinary.WriteNullterminatedString(Mesh.Description)
 		DataBinary.WriteSInt16(Mesh.MaterialOverride)
-		DataBinary.WriteUInt8(Mesh.HasCustomTexture)
-		DataBinary.WriteNullterminatedString(Mesh.CustomTexture)
-		DataBinary.WriteUInt16(Mesh.TextureStyle)
-		DataBinary.WriteUInt8(Mesh.HasGloss)
-		DataBinary.WriteNullterminatedString(Mesh.GlossTexture)
+
+		DataBinary.WriteSInt32(Mesh.ShaderId)
+		DataBinary.WriteSInt16(Mesh.BlendMode)
+		DataBinary.WriteUInt16(Mesh.RenderFlags)
+		for i in range(0, 4):
+			DataBinary.WriteSInt16(Mesh.TextureTypes[i])
+			DataBinary.WriteNullterminatedString(Mesh.TextureNames[i])
+
 		DataBinary.WriteSInt32(Mesh.OriginalMeshIndex)
 
 		DataBinary.WriteUInt16(0) # Level.
