@@ -624,18 +624,15 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 			props = oTargetObject.data.wow_props
 
 			textureBox = layout.box()
-			textureBox.label("Custom texture:")
-			textureBox.prop(props, 'TextureType0', text='')
+			textureBox.prop(props, 'TextureType0', text='Custom texture')
 			if props.TextureType0 == '0':
 				textureBox.prop(props, 'TextureName0', text='Path')
 
 			flagsBox = layout.box()
-			flagsBox.label("Blend Mode")
-			flagsBox.prop(props, 'BlendMode', text='')
-			
+			flagsBox.prop(props, 'BlendMode', text='Blend Mode')
+
 			if props.BlendMode != '-1':
-				flagsBox.label("Render Flags")
-				flagsBox.prop(props, 'RenderFlags')
+				flagsBox.prop(props, 'RenderFlags', text='Render Flags')
 
 			boxShader = layout.box();
 			boxShader.prop(props, 'ShaderId', text="Shader")
@@ -644,15 +641,15 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 				if int(props.ShaderId) not in opCountByShader:
 					props.ShaderId = '-1';
 				else:
-					textrureCount = opCountByShader[int(props.ShaderId)]
-					if textrureCount > 1:
-						boxShader.label("Shader textures:")
-					for i in range(1, textrureCount):
+					textureCount = opCountByShader[int(props.ShaderId)]
+					if textureCount > 1:
+						boxShader.label("Select shader textures (%d):" % (textureCount - 1))
+					for i in range(1, textureCount):
 						box = boxShader.box()
-						box.prop(props, 'TextureType' + str(i), text='')
+						box.prop(props, 'TextureType' + str(i), text='Texture %d' % i)
 						type = getattr(props, 'TextureType' + str(i))
 						if type == '0':
-							box.prop(props, 'TextureName' + str(i), text='')
+							box.prop(props, 'TextureName' + str(i), text='Path')
 
 			layout.prop_search(props, 'MaterialOverride', context.scene, "objects")
 			layout.prop(props, 'OriginalMeshIndex')
