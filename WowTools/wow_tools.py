@@ -45,6 +45,20 @@ class OBJECT_PT_WoW(bpy.types.Panel):
 		layout_col2.operator('scene.wow_show_cloak', text='Cloak')
 		layout_col2.operator('scene.wow_show_body', text='Body')
 
+		props = context.scene.wow_props
+		layout_col3 = layout.column()
+		layout_col3.label(text='Index')
+		layout_col3.label(text='')
+		layout_col3.label(text='')
+		layout_col3.label(text='')
+		layout_col3.label(text='')
+		row = layout_col3.row()
+		row.label(text=str(props.CurrentFacialIndex))
+		row.operator('scene.wow_next_facial', text='', icon='RIGHTARROW')		
+		row = layout_col3.row()
+		row.label(text=str(props.CurrentHairIndex))
+		row.operator('scene.wow_next_hair', text='', icon='RIGHTARROW')
+
 ### HIDE ###
 class OBJECT_OP_Hide_All(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_all'
@@ -199,7 +213,7 @@ class OBJECT_OP_Show_Face(bpy.types.Operator):
 			if ob.type == 'MESH' and re.search('^Mesh(01|02|03|17)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
-		
+
 class OBJECT_OP_Show_Hair(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_hair'
 	bl_label = 'Show Hairstyle'
@@ -210,7 +224,7 @@ class OBJECT_OP_Show_Hair(bpy.types.Operator):
 			if ob.type == 'MESH' and re.search('^Mesh(00)(?!00)', ob.name):
 				ob.hide = False
 		return {'FINISHED'}
-		
+
 class OBJECT_OP_Show_Armors(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_armors'
 	bl_label = 'Show Armors'
@@ -242,6 +256,78 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201|2301)', ob.name):
 				ob.hide = False
+		return {'FINISHED'}
+
+class OBJECT_OP_Next_Facial(bpy.types.Operator):
+	bl_idname = 'scene.wow_next_facial'
+	bl_label = 'Next facial'
+	bl_description = 'Next facial'
+
+	def execute(self, context):
+		maxIndex = 1799
+		props = context.scene.wow_props
+		workingIndex = props.CurrentFacialIndex + 1
+		while True:
+			if workingIndex >= maxIndex:
+				workingIndex = -1
+
+			if workingIndex == props.CurrentFacialIndex:
+				break
+
+			found = False
+			for ob in bpy.context.scene.objects:
+				if ob.type == 'MESH':
+					searchObj = re.search('^Mesh((01|02|03|17)\d+)', ob.name)
+					if searchObj:
+						if searchObj.group(1) == "%04d" % workingIndex:
+							found = True
+							ob.hide = False
+						else:
+							ob.hide = True
+
+			if found:
+				break
+
+			workingIndex = workingIndex + 1
+
+		props.CurrentFacialIndex = workingIndex
+
+		return {'FINISHED'}
+
+class OBJECT_OP_Next_Hair(bpy.types.Operator):
+	bl_idname = 'scene.wow_next_hair'
+	bl_label = 'Next hair'
+	bl_description = 'Next hair'
+
+	def execute(self, context):
+		maxIndex = 99
+		props = context.scene.wow_props
+		workingIndex = props.CurrentHairIndex + 1
+		while True:
+			if workingIndex >= maxIndex:
+				workingIndex = -1
+
+			if workingIndex == props.CurrentHairIndex:
+				break
+
+			found = False
+			for ob in bpy.context.scene.objects:
+				if ob.type == 'MESH':
+					searchObj = re.search('^Mesh00((?!00)\d+)', ob.name)
+					if searchObj:
+						if searchObj.group(1) == "%02d" % workingIndex:
+							found = True
+							ob.hide = False
+						else:
+							ob.hide = True
+
+			if found:
+				break
+
+			workingIndex = workingIndex + 1
+
+		props.CurrentHairIndex = workingIndex
+
 		return {'FINISHED'}
 
 class Wow_Mesh_Props(bpy.types.PropertyGroup):
@@ -695,6 +781,9 @@ class Wow_Scene_Props(bpy.types.PropertyGroup):
 	def register(Wow_Scene_Props):
 		Wow_Scene_Props.BoneMigrationFile = bpy.props.StringProperty(name="Bone migrations Source",
 			description="File with bone migration data")
+
+		Wow_Scene_Props.CurrentHairIndex = bpy.props.IntProperty(name="Current hair index", min=-1, max=255, default=-1)
+		Wow_Scene_Props.CurrentFacialIndex = bpy.props.IntProperty(name="Current facial index", min=-1, max=1799, default=-1)
 
 		bpy.types.Scene.wow_props = bpy.props.PointerProperty(type=Wow_Scene_Props, 
 			name="WoW Scene Properties", 
