@@ -52,19 +52,28 @@ def DoExport(FileName):
 		else:
 			Mesh.MaterialOverride = -1
 
-		Mesh.ShaderId = int(props.ShaderId)
-		Mesh.BlendMode = int(props.BlendMode)
-		Mesh.RenderFlags = RenderFlagsFromSet(props.RenderFlags)
-
 		Mesh.TextureTypes[0] = int(props.TextureType0)
-		Mesh.TextureTypes[1] = int(props.TextureType1)
-		Mesh.TextureTypes[2] = int(props.TextureType2)
-		Mesh.TextureTypes[3] = int(props.TextureType3)
-
 		Mesh.TextureNames[0] = props.TextureName0
-		Mesh.TextureNames[1] = props.TextureName1
-		Mesh.TextureNames[2] = props.TextureName2
-		Mesh.TextureNames[3] = props.TextureName3
+		Mesh.BlendMode = int(props.BlendMode)
+
+		if props.MenuType == '0':
+			Mesh.RenderFlags = RenderFlagsFromSet({ '3' }) # TwoSided
+
+			if len(props.TextureName1) > 0:
+				Mesh.ShaderId = 32769
+				Mesh.TextureTypes[1] = 0 # Hardcoded
+				Mesh.TextureNames[1] = props.TextureName1
+		elif props.MenuType == '1':
+			Mesh.ShaderId = int(props.ShaderId)
+			Mesh.RenderFlags = RenderFlagsFromSet(props.RenderFlags)
+
+			Mesh.TextureTypes[1] = int(props.TextureType1)
+			Mesh.TextureTypes[2] = int(props.TextureType2)
+			Mesh.TextureTypes[3] = int(props.TextureType3)
+
+			Mesh.TextureNames[1] = props.TextureName1
+			Mesh.TextureNames[2] = props.TextureName2
+			Mesh.TextureNames[3] = props.TextureName3
 
 		Mesh.OriginalMeshIndex = props.OriginalMeshIndex
 

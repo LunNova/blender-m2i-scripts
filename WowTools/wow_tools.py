@@ -54,7 +54,7 @@ class OBJECT_PT_WoW(bpy.types.Panel):
 		layout_col3.label(text='')
 		row = layout_col3.row()
 		row.label(text=str(props.CurrentFacialIndex))
-		row.operator('scene.wow_next_facial', text='', icon='RIGHTARROW')		
+		row.operator('scene.wow_next_facial', text='', icon='RIGHTARROW')
 		row = layout_col3.row()
 		row.label(text=str(props.CurrentHairIndex))
 		row.operator('scene.wow_next_hair', text='', icon='RIGHTARROW')
@@ -468,6 +468,14 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 		Wow_Mesh_Props.TextureName2 = bpy.props.StringProperty(name="Texture 2", description="Path to texture relative to WoW directory")
 		Wow_Mesh_Props.TextureName3 = bpy.props.StringProperty(name="Texture 3", description="Path to texture relative to WoW directory")
 
+		Wow_Mesh_Props.MenuType = bpy.props.EnumProperty(
+			items=[
+				('0', 'Simple', ''),
+				('1', 'Extended', '')
+			],
+			default='1'
+		)
+
 		# legacy
 		Wow_Mesh_Props.HasCustomTexture = bpy.props.BoolProperty(
 			name="", 
@@ -542,7 +550,7 @@ class Wow_Camera_Props(bpy.types.PropertyGroup):
 			unit='NONE')
 		Wow_Camera_Props.Type = bpy.props.EnumProperty(
 			name='Camera type',
-			description='Style of texture',
+			description='Camera type',
 			items=[('-1', 'FlyBy', 'FlyBy camera (movies)'),
 				('0', 'Portrait', 'Portrait camera (character bar)'),
 				('1', 'Paperdoll', 'Portrait camera (character menu)')],
@@ -623,6 +631,8 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 		if targetType == "MESH":
 			props = oTargetObject.data.wow_props
 
+			layout.prop(props, 'MenuType', expand=True)
+
 			textureBox = layout.box()
 			textureBox.prop(props, 'TextureType0', text='Custom texture')
 			if props.TextureType0 == '0':
@@ -631,25 +641,29 @@ class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 			flagsBox = layout.box()
 			flagsBox.prop(props, 'BlendMode', text='Blend Mode')
 
-			if props.BlendMode != '-1':
+			if props.MenuType == '1' and props.BlendMode != '-1':
 				flagsBox.prop(props, 'RenderFlags', text='Render Flags')
 
-			boxShader = layout.box();
-			boxShader.prop(props, 'ShaderId', text="Shader")
+			if props.MenuType == '0':
+				boxShader = layout.box();
+				boxShader.prop(props, 'TextureName1', text="Gloss Texture")
+			elif props.MenuType == '1':
+				boxShader = layout.box();
+				boxShader.prop(props, 'ShaderId', text="Shader")
 
-			if props.ShaderId != '-1':
-				if int(props.ShaderId) not in opCountByShader:
-					props.ShaderId = '-1';
-				else:
-					textureCount = opCountByShader[int(props.ShaderId)]
-					if textureCount > 1:
-						boxShader.label("Select shader textures (%d):" % (textureCount - 1))
-					for i in range(1, textureCount):
-						box = boxShader.box()
-						box.prop(props, 'TextureType' + str(i), text='Texture %d' % i)
-						type = getattr(props, 'TextureType' + str(i))
-						if type == '0':
-							box.prop(props, 'TextureName' + str(i), text='Path')
+				if props.ShaderId != '-1':
+					if int(props.ShaderId) not in opCountByShader:
+						props.ShaderId = '-1';
+					else:
+						textureCount = opCountByShader[int(props.ShaderId)]
+						if textureCount > 1:
+							boxShader.label("Select shader textures (%d):" % (textureCount - 1))
+						for i in range(1, textureCount):
+							box = boxShader.box()
+							box.prop(props, 'TextureType' + str(i), text='Texture %d' % i)
+							type = getattr(props, 'TextureType' + str(i))
+							if type == '0':
+								box.prop(props, 'TextureName' + str(i), text='Path')
 
 			layout.prop_search(props, 'MaterialOverride', context.scene, "objects")
 			layout.prop(props, 'OriginalMeshIndex')
