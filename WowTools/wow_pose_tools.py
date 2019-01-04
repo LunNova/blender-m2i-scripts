@@ -161,6 +161,50 @@ class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 		self.report({'INFO'}, "Vertex weights cleaned up")
 		return {'FINISHED'}
 
+class DATA_OT_wowtools_remove_unused_bones(bpy.types.Operator):
+	bl_idname = "scene.remove_unused_bones"
+	bl_label = "Wow Tools Remove Unused Bones"
+	bl_description = "Removes bones from armature that are not used in meshes"
+
+	@classmethod
+	def poll(cls, context):
+		return context.active_object is not None and context.active_object.type == 'ARMATURE'
+
+	def execute(self, context):
+		armature = context.active_object
+
+		mode = None
+		if armature.mode != 'EDIT':
+			mode = armature.mode
+			bpy.ops.object.mode_set(mode = 'EDIT')
+
+		usedNames = set()
+
+		for ob in bpy.context.scene.objects:
+			usedVertexGroups = set()
+			if ob.type == 'MESH' and ob.parent == armature:
+				for i, Vertex in enumerate(ob.data.vertices):
+					for g in Vertex.groups:
+						if g.weight > 0:
+							usedVertexGroups.add(g.group)
+
+			for i, VertexGroup in enumerate(ob.vertex_groups):
+				if VertexGroup.index in usedVertexGroups:
+					usedNames.add(VertexGroup.name)
+
+		removedCnt = 0
+
+		for bone in armature.data.edit_bones:
+			if bone.name not in usedNames:
+				removedCnt += 1
+				armature.data.edit_bones.remove(bone)
+
+		if mode is not None:
+			bpy.ops.object.mode_set(mode = mode)
+
+		self.report({'INFO'}, "Removed %d bones from armature" % removedCnt)
+		return {'FINISHED'}
+
 #******************************
 #---===GUI===
 #******************************
@@ -175,3 +219,4 @@ class OBJECT_PT_WoW_Pose(bpy.types.Panel):
 		self.layout.operator('scene.wow_create_modifiers', text='Create armature modifiers');
 		self.layout.operator('scene.wow_apply_modifiers', text='Apply armature modifiers');
 		self.layout.operator('scene.wow_apply_pose', text='Apply armature pose');
+		self.layout.operator('scene.remove_unused_bones', text='Remove unused bones from armature');
