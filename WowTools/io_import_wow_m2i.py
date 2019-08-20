@@ -183,7 +183,15 @@ def DoImport(FileName):
 		if Bone.Parent >= 0:
 			BEditBone = BArmature.data.edit_bones['Bone' + str('%03d' % Bone.Index)]
 			BEditBone.parent = BArmature.data.edit_bones['Bone' + str('%03d' % Bone.Parent)]
-	bpy.context.scene.update() # update scene.
+	
+	
+	## 2.79
+	# bpy.context.scene.update() # update scene.
+	dg = bpy.context.evaluated_depsgraph_get()
+	dg.update()
+	## other 
+	# bpy.context.view_layer.update()
+	
 	bpy.ops.object.mode_set(mode = 'OBJECT') # return to object mode.
 	
 	# instantiate attachments
@@ -202,7 +210,7 @@ def DoImport(FileName):
 			#BAttachment.location.x -= -Attachment.Position[1]
 			#BAttachment.location.y -= Attachment.Position[0]
 			#BAttachment.location.z -= Attachment.Position[2]
-			BAttachment.empty_draw_size = 0.1
+			BAttachment.empty_display_size = 0.1
 
 	pi = 3.14159265			
 	# instantiate cameras
@@ -258,12 +266,13 @@ def DoImport(FileName):
 			#BVertex.normal.y = Vertex.Normal[0]
 			#BVertex.normal.z = Vertex.Normal[2]
 
-		BMeshData.tessfaces.add(len(Mesh.TriangleList)) # add triangles to mesh data.
+		print(dir(BMeshData.loop_triangles))
+		BMeshData.loop_triangles.add(len(Mesh.TriangleList)) # add triangles to mesh data.
 
 		BMeshTextureFaceLayer = BMeshData.tessface_uv_textures.new(name = 'Texture')
 		BMeshTextureFaceLayer2 = BMeshData.tessface_uv_textures.new(name = 'Texture2')
 		for i, Triangle in enumerate(Mesh.TriangleList):
-			BFace = BMeshData.tessfaces[i]
+			BFace = BMeshData.loop_triangles[i]
 			BFace.vertices = [Triangle.A, Triangle.B, Triangle.C]	# reverse the wind order so normals point out.
 
 			BMeshTextureFace = BMeshTextureFaceLayer.data[i]

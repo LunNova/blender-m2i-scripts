@@ -5,9 +5,9 @@ import bpy
 import re
 
 class OBJECT_OP_Create_Modifiers(bpy.types.Operator):
-	bl_idname = 'scene.wow_create_modifiers'
-	bl_label = 'Create armature modifiers'
-	bl_description = 'Create armature modifiers on all meshes, which are children to selected armature.'
+	bl_idname: 'scene.wow_create_modifiers'
+	bl_label: 'Create armature modifiers'
+	bl_description: 'Create armature modifiers on all meshes, which are children to selected armature.'
 
 	@classmethod
 	def poll(cls, context):
@@ -32,9 +32,9 @@ class OBJECT_OP_Create_Modifiers(bpy.types.Operator):
 		return {'FINISHED'}
 
 class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
-	bl_idname = 'scene.wow_apply_modifiers'
-	bl_label = 'Apply armature modifiers'
-	bl_description = 'Apply armature modifiers to all meshes, which are children to selected armature.'
+	bl_idname: 'scene.wow_apply_modifiers'
+	bl_label: 'Apply armature modifiers'
+	bl_description: 'Apply armature modifiers to all meshes, which are children to selected armature.'
 
 	@classmethod
 	def poll(cls, context):
@@ -45,7 +45,7 @@ class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
 			self.report({'ERROR'}, "Armature must be selected")
 			return {'FINISHED'}
 
-		armature = bpy.context.active_object;
+		armature = bpy.context.active_object
 		#bpy.ops.object.select_all(action = 'DESELECT')
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH':
@@ -56,9 +56,9 @@ class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
 		return {'FINISHED'}
 
 class OBJECT_OP_Apply_Pose(bpy.types.Operator):
-	bl_idname = 'scene.wow_apply_pose'
-	bl_label = 'Apply armature pose'
-	bl_description = 'Apply currently selected armature pose as rest pose. Original Blender function is bugged - it does not respect attachments.'
+	bl_idname: 'scene.wow_apply_pose'
+	bl_label: 'Apply armature pose'
+	bl_description: 'Apply currently selected armature pose as rest pose. Original Blender function is bugged - it does not respect attachments.'
 
 	@classmethod
 	def poll(cls, context):
@@ -99,11 +99,11 @@ bpy.types.WindowManager.iWowTools_WeightThreshold = bpy.props.FloatProperty(
 	soft_max=1.0)
 
 class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
-	bl_label = "Weights cleanup"
-	bl_idname = "wowtools.vertex_ops"
-	bl_space_type = "PROPERTIES"
-	bl_region_type = "WINDOW"
-	bl_context = "data"
+	bl_label: "Weights cleanup"
+	bl_idname: "wowtools.vertex_ops"
+	bl_space_type: "PROPERTIES"
+	bl_region_type: "WINDOW"
+	bl_context: "data"
 
 	@classmethod
 	def poll(cls, context):
@@ -113,7 +113,6 @@ class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
 
 		layout = self.layout
 
-		oTargetObject = context.active_object
 		oWM = context.window_manager
 
 		box = layout.box()
@@ -127,9 +126,9 @@ class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
 
 class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 
-	bl_idname = "wowtools.cleanup_weights"
-	bl_label = "Wow Tools Bone Weight Cleanup"
-	bl_description = "Removes weights from vertices that are below threshold and remove unused vertex groups"
+	bl_idname: "wowtools.cleanup_weights"
+	bl_label: "Wow Tools Bone Weight Cleanup"
+	bl_description: "Removes weights from vertices that are below threshold and remove unused vertex groups"
 
 	@classmethod
 	def poll(cls, context):
@@ -162,9 +161,9 @@ class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 		return {'FINISHED'}
 
 class DATA_OT_wowtools_remove_unused_bones(bpy.types.Operator):
-	bl_idname = "scene.remove_unused_bones"
-	bl_label = "Wow Tools Remove Unused Bones"
-	bl_description = "Removes bones from armature that are not used in meshes"
+	bl_idname: "scene.remove_unused_bones"
+	bl_label: "Wow Tools Remove Unused Bones"
+	bl_description: "Removes bones from armature that are not used in meshes"
 
 	@classmethod
 	def poll(cls, context):
@@ -209,14 +208,14 @@ class DATA_OT_wowtools_remove_unused_bones(bpy.types.Operator):
 #---===GUI===
 #******************************
 class OBJECT_PT_WoW_Pose(bpy.types.Panel):
-	bl_label = 'WoW Pose Tools'
-	bl_idname = 'WoWPoseTools'
-	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'TOOLS'
-	bl_category = 'WoW'
+	bl_label: 'WoW Pose Tools'
+	bl_idname: 'WoWPoseTools'
+	bl_space_type: 'VIEW_3D'
+	bl_region_type: 'TOOLS'
+	bl_category: 'WoW'
 
 	def draw(self, context):
-		self.layout.operator('scene.wow_create_modifiers', text='Create armature modifiers');
-		self.layout.operator('scene.wow_apply_modifiers', text='Apply armature modifiers');
-		self.layout.operator('scene.wow_apply_pose', text='Apply armature pose');
-		self.layout.operator('scene.remove_unused_bones', text='Remove unused bones from armature');
+		self.layout.operator('scene.wow_create_modifiers', text='Create armature modifiers')
+		self.layout.operator('scene.wow_apply_modifiers', text='Apply armature modifiers')
+		self.layout.operator('scene.wow_apply_pose', text='Apply armature pose')
+		self.layout.operator('scene.remove_unused_bones', text='Remove unused bones from armature')

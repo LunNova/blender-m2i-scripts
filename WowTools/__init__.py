@@ -2,8 +2,7 @@ bl_info = {
 	'name': 'WoW Tools',
 	'author': 'Suncurio, Freeman',
 	'version': (1, 0, 0),
-	'blender': (2, 73, 0),
-	'api': 36302,
+	'blender': (2, 80, 0),
 	'location': 'File -> Import/Export',
 	'description': 'Tools to work with M2I format',
 	'warning': '',
@@ -16,6 +15,7 @@ from .io_export_wow_m2i import *
 from .io_import_wow_m2i import *
 from .wow_tools import *
 from .wow_pose_tools import *
+from bpy_extras.io_utils import ImportHelper
 
 import bpy
 import re
@@ -45,25 +45,45 @@ def convert_properties(self):
 		props = obj.data.wow_props
 		SetupFromOldProperties(props)
 
-def menu_import_func(self, context):
-	default_path = os.path.splitext(bpy.data.filepath)[0] + '.m2i'
-	self.layout.operator(M2IImporter.bl_idname, text = 'M2 Intermediate (.m2i)').filepath = default_path
-	
-def menu_export_func(self, context):
-	default_path = os.path.splitext(bpy.data.filepath)[0] + '.m2i'
-	self.layout.operator(M2IExporter.bl_idname, text = 'M2 Intermediate (.m2i)').filepath = default_path
-	
+class ImportM2I(bpy.types.Operator, ImportHelper):
+	"""Import M2Mod itermediate file (.m2i)."""
+	bl_idname = "wow_toolls.import_m2i"
+	bl_label = "Import M2I"
+
+	# ImportHelper mixin class uses this
+	filename_ext = ".m2i"
+
+	filter_glob: bpy.props.StringProperty(
+		default="*.m2i",
+		options={'HIDDEN'},
+		maxlen=1024,  # Max internal buffer length, longer would be clamped.
+	)
+
+	def execute(self, context):
+		DoImport(self.filepath)
+		return {'FINISHED'}
+
+# Only needed if you want to add into a dynamic menu
+def menu_func_import(self, context):
+	self.layout.operator(ImportM2I.bl_idname, text="M2Mod intermediate (.m2i)")
+
+classes = (
+	ImportM2I,
+	Wow_Camera_Props,
+	Wow_EditBone_Props,
+	Wow_Mesh_Props,
+	Wow_Scene_Props,
+)
+
+register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
+
 def register():
-	bpy.utils.register_module(__name__)
-	bpy.types.INFO_MT_file_import.prepend(menu_import_func)
-	bpy.types.INFO_MT_file_export.prepend(menu_export_func)
-	
-	bpy.app.handlers.load_post.append(convert_properties)
+	register_classes()
+	bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 	
 def unregister():
-	bpy.utils.unregister_module(__name__)
-	bpy.types.INFO_MT_file_import.remove(menu_import_func)
-	bpy.types.INFO_MT_file_export.remove(menu_export_func)
+	unregister_classes()
+	bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
 
 if __name__ == '__main__':
 	register()
