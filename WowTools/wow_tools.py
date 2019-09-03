@@ -459,9 +459,9 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 				];
 
 		Wow_Mesh_Props.TextureType0 = bpy.props.EnumProperty(name='Texture type 0', description='Texture type 0', items=textureTypeItems, default='-1')
-		Wow_Mesh_Props.TextureType1 = bpy.props.EnumProperty(name='Texture type 1', description='Texture type 1', items=textureTypeItems, default='0')
-		Wow_Mesh_Props.TextureType2 = bpy.props.EnumProperty(name='Texture type 2', description='Texture type 2', items=textureTypeItems, default='0')
-		Wow_Mesh_Props.TextureType3 = bpy.props.EnumProperty(name='Texture type 3', description='Texture type 3', items=textureTypeItems, default='0')
+		Wow_Mesh_Props.TextureType1 = bpy.props.EnumProperty(name='Texture type 1', description='Texture type 1', items=textureTypeItems, default='-1')
+		Wow_Mesh_Props.TextureType2 = bpy.props.EnumProperty(name='Texture type 2', description='Texture type 2', items=textureTypeItems, default='-1')
+		Wow_Mesh_Props.TextureType3 = bpy.props.EnumProperty(name='Texture type 3', description='Texture type 3', items=textureTypeItems, default='-1')
 
 		Wow_Mesh_Props.TextureName0 = bpy.props.StringProperty(name="Texture 0", description="Path to texture relative to WoW directory")
 		Wow_Mesh_Props.TextureName1 = bpy.props.StringProperty(name="Texture 1", description="Path to texture relative to WoW directory")
