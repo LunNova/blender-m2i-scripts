@@ -284,13 +284,15 @@ def DoImport(FileName):
 
 			BFace.use_smooth = True
 
-		for Bone in BoneList:
-			BVertexGroup = BMesh.vertex_groups.new('Bone' + str('%03d' % Bone.Index))
 		for i, Vertex in enumerate(Mesh.VertexList):
 			BVertex = BMeshData.vertices[i]
 			for j in range(0, 4):
 				if Vertex.BoneWeights[j] > 0:
-					BVertexGroup = BMesh.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
+					key = 'Bone' + str('%03d' % Vertex.BoneIndices[j])
+					BVertexGroup = BMesh.vertex_groups.get(key)
+					if BVertexGroup == None:
+						BVertexGroup = BMesh.vertex_groups.new(key)
+
 					BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
 		BMeshData.update()
 		BArmatureModifier = BMesh.modifiers.new('Armature', 'ARMATURE')
