@@ -3,6 +3,7 @@ import os
 import struct
 
 from .wow_common import *
+from bpy_extras.io_utils import ImportHelper
 
 def DoImport(FileName):
 	MeshList = []
@@ -40,7 +41,6 @@ def DoImport(FileName):
 			Mesh.MaterialOverride = DataBinary.ReadSInt16()
 
 			if Version >= MakeVersion(8, 1):
-				print("Entered")
 				Mesh.ShaderId = DataBinary.ReadSInt32()
 				Mesh.BlendMode = DataBinary.ReadSInt16()
 				Mesh.RenderFlags = DataBinary.ReadUInt16()
@@ -48,7 +48,6 @@ def DoImport(FileName):
 					Mesh.TextureTypes[j] = DataBinary.ReadSInt16()
 					Mesh.TextureNames[j] = DataBinary.ReadNullterminatedString()
 			else:
-				print("Entered old")
 				if Version >= MakeVersion(4, 9):
 					DataBinary.ReadUInt8() != 0 # HasCustomTexture
 				Mesh.TextureNames[0] = DataBinary.ReadNullterminatedString()
@@ -158,7 +157,7 @@ def DoImport(FileName):
 	
 	# close stream
 	File.close()
-	
+
 	#deselect all objects.
 	bpy.ops.object.select_all(action = 'DESELECT')
 	
@@ -243,92 +242,83 @@ def DoImport(FileName):
 		BCamera.data.wow_props.TargetZ = Camera.Target[2]
 		
 		BCamera.parent = BArmature
-	
+
 	MeshResultNames = dict()
-	# instantiate meshes
 	for k, Mesh in enumerate(MeshList):
-		bpy.ops.object.add(type = 'MESH', location = (0.0, 0.0, 0.0))
-		BMesh = bpy.context.object
+		faceOffs = 0
+		faces = []
+		vertices = []
+		texFaces = []
+		texFaces2 = []
+
 		meshName = 'Mesh' + str('%04d' % Mesh.ID)
-		if Mesh.Description != '':
-			meshName = meshName + '_' + Mesh.Description
-		BMesh.name = meshName
-
-		BMeshData = BMesh.data
-		BMeshData.name = BMesh.name
-		BMeshData.vertices.add(len(Mesh.VertexList)) # add vertices to mesh data.
 		for i, Vertex in enumerate(Mesh.VertexList):
-			BVertex = BMeshData.vertices[i]
-			BVertex.co.x = -Vertex.Position[1]
-			BVertex.co.y = Vertex.Position[0]
-			BVertex.co.z = Vertex.Position[2]
-			#BVertex.normal.x = -Vertex.Normal[1] # we don't need to import normals because they will be calculated automatically by Blender
-			#BVertex.normal.y = Vertex.Normal[0]
-			#BVertex.normal.z = Vertex.Normal[2]
+			vertices.append((-Vertex.Position[1], Vertex.Position[0], Vertex.Position[2]))
 
-		print(dir(BMeshData.loop_triangles))
-		BMeshData.loop_triangles.add(len(Mesh.TriangleList)) # add triangles to mesh data.
-
-		BMeshTextureFaceLayer = BMeshData.tessface_uv_textures.new(name = 'Texture')
-		BMeshTextureFaceLayer2 = BMeshData.tessface_uv_textures.new(name = 'Texture2')
 		for i, Triangle in enumerate(Mesh.TriangleList):
-			BFace = BMeshData.loop_triangles[i]
-			BFace.vertices = [Triangle.A, Triangle.B, Triangle.C]	# reverse the wind order so normals point out.
+			vertexA = Mesh.VertexList[Triangle.A]
+			vertexB = Mesh.VertexList[Triangle.B]
+			vertexC = Mesh.VertexList[Triangle.C]
 
-			BMeshTextureFace = BMeshTextureFaceLayer.data[i]
-			BMeshTextureFace.uv1[0] = Mesh.VertexList[Triangle.A].Texture[0]
-			BMeshTextureFace.uv1[1] = 1.0 - Mesh.VertexList[Triangle.A].Texture[1]
-			BMeshTextureFace.uv2[0] = Mesh.VertexList[Triangle.B].Texture[0]
-			BMeshTextureFace.uv2[1] = 1.0 - Mesh.VertexList[Triangle.B].Texture[1]
-			BMeshTextureFace.uv3[0] = Mesh.VertexList[Triangle.C].Texture[0]
-			BMeshTextureFace.uv3[1] = 1.0 - Mesh.VertexList[Triangle.C].Texture[1]
+			texFaces.append([vertexA.Texture[0], 1.0 - vertexA.Texture[1]])
+			texFaces.append([vertexB.Texture[0], 1.0 - vertexB.Texture[1]])
+			texFaces.append([vertexC.Texture[0], 1.0 - vertexC.Texture[1]])
 
-			BMeshTextureFace2 = BMeshTextureFaceLayer2.data[i]
-			BMeshTextureFace2.uv1[0] = Mesh.VertexList[Triangle.A].Texture2[0]
-			BMeshTextureFace2.uv1[1] = 1.0 - Mesh.VertexList[Triangle.A].Texture2[1]
-			BMeshTextureFace2.uv2[0] = Mesh.VertexList[Triangle.B].Texture2[0]
-			BMeshTextureFace2.uv2[1] = 1.0 - Mesh.VertexList[Triangle.B].Texture2[1]
-			BMeshTextureFace2.uv3[0] = Mesh.VertexList[Triangle.C].Texture2[0]
-			BMeshTextureFace2.uv3[1] = 1.0 - Mesh.VertexList[Triangle.C].Texture2[1]
+			texFaces2.append([vertexA.Texture2[0], 1.0 - vertexA.Texture2[1]])
+			texFaces2.append([vertexB.Texture2[0], 1.0 - vertexB.Texture2[1]])
+			texFaces2.append([vertexC.Texture2[0], 1.0 - vertexC.Texture2[1]])
+			
+			faces.append((faceOffs + Triangle.A, faceOffs + Triangle.B, faceOffs + Triangle.C))
 
-			BFace.use_smooth = True
+		faceOffs += len(Mesh.VertexList)
+
+		mesh = bpy.context.blend_data.meshes.new(name=meshName)
+		mesh.from_pydata(vertices, [], faces)
+
+		profile_object = bpy.data.objects.new(meshName, mesh)
+
+		bpy.context.collection.objects.link(profile_object)
+
+		createTextureLayers(mesh, 'Texture', texFaces)
+		createTextureLayers(mesh, 'Texture2', texFaces2)
 
 		for Bone in BoneList:
-			BVertexGroup = BMesh.vertex_groups.new('Bone' + str('%03d' % Bone.Index))
+			BVertexGroup = profile_object.vertex_groups.new(name='Bone' + str('%03d' % Bone.Index))
 		for i, Vertex in enumerate(Mesh.VertexList):
-			BVertex = BMeshData.vertices[i]
+			BVertex = profile_object.data.vertices[i]
 			for j in range(0, 4):
 				if Vertex.BoneWeights[j] > 0:
-					BVertexGroup = BMesh.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
+					BVertexGroup = profile_object.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
 					BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
-		BMeshData.update()
-		BArmatureModifier = BMesh.modifiers.new('Armature', 'ARMATURE')
+		mesh.update()
+		
+		BArmatureModifier = profile_object.modifiers.new('Armature', 'ARMATURE')
 		BArmatureModifier.object = BArmature
 		BArmatureModifier.use_bone_envelopes = False
 		BArmatureModifier.use_vertex_groups = True
-		BMesh.parent = BArmature
-		BMesh.select = False
+		profile_object.parent = BArmature
+		profile_object.select_set(False)
 
-		BMesh.data.wow_props.Description = Mesh.Description
-		BMesh.data.wow_props.ShaderId = str(Mesh.ShaderId)
-		BMesh.data.wow_props.RenderFlags = RenderFlagsToSet(Mesh.RenderFlags)
-		BMesh.data.wow_props.BlendMode = str(Mesh.BlendMode)
+		profile_object.data.wow_props.Description = Mesh.Description
+		profile_object.data.wow_props.ShaderId = str(Mesh.ShaderId)
+		profile_object.data.wow_props.RenderFlags = RenderFlagsToSet(Mesh.RenderFlags)
+		profile_object.data.wow_props.BlendMode = str(Mesh.BlendMode)
 
-		BMesh.data.wow_props.TextureType0 = str(Mesh.TextureTypes[0])
-		BMesh.data.wow_props.TextureType1 = str(Mesh.TextureTypes[1])
-		BMesh.data.wow_props.TextureType2 = str(Mesh.TextureTypes[2])
-		BMesh.data.wow_props.TextureType3 = str(Mesh.TextureTypes[3])
+		profile_object.data.wow_props.TextureType0 = str(Mesh.TextureTypes[0])
+		profile_object.data.wow_props.TextureType1 = str(Mesh.TextureTypes[1])
+		profile_object.data.wow_props.TextureType2 = str(Mesh.TextureTypes[2])
+		profile_object.data.wow_props.TextureType3 = str(Mesh.TextureTypes[3])
 
-		BMesh.data.wow_props.TextureName0 = Mesh.TextureNames[0]
-		BMesh.data.wow_props.TextureName1 = Mesh.TextureNames[1]
-		BMesh.data.wow_props.TextureName2 = Mesh.TextureNames[2]
-		BMesh.data.wow_props.TextureName3 = Mesh.TextureNames[3]
+		profile_object.data.wow_props.TextureName0 = Mesh.TextureNames[0]
+		profile_object.data.wow_props.TextureName1 = Mesh.TextureNames[1]
+		profile_object.data.wow_props.TextureName2 = Mesh.TextureNames[2]
+		profile_object.data.wow_props.TextureName3 = Mesh.TextureNames[3]
 
-		BMesh.data.wow_props.OriginalMeshIndex = Mesh.OriginalMeshIndex
+		profile_object.data.wow_props.OriginalMeshIndex = Mesh.OriginalMeshIndex
 
 		if Mesh.MaterialOverride is not None and Mesh.MaterialOverride >= 0:
-			BMesh['TmpMaterialOverride'] = Mesh.MaterialOverride
-		MeshResultNames[k] = BMesh.name
+			profile_object['TmpMaterialOverride'] = Mesh.MaterialOverride
+		MeshResultNames[k] = profile_object.name
 
 	# assign real mesh names to material overrides
 	for ob in bpy.context.scene.objects:
@@ -336,30 +326,31 @@ def DoImport(FileName):
 			ob.data.wow_props.MaterialOverride = MeshResultNames[ob['TmpMaterialOverride']]
 			del ob['TmpMaterialOverride']
 
-	BArmature.select = True
-	bpy.context.scene.objects.active = BArmature
+	BArmature.select_set(True)
+	bpy.context.view_layer.objects.active = BArmature
 	
 	print('M2I imported successfully: ' + FileName)
 
+def createTextureLayers(me, name, texFaces):
+	uvtex = me.uv_layers.new(name = name)
+	for n, tf in enumerate(texFaces):
+		datum = uvtex.data[n]
+		datum.uv = [ tf[0], tf[1] ]
 
-class M2IImporter(bpy.types.Operator):
-	'''Import a M2 Intermediate file'''
-	bl_idname = 'import.m2i'
-	bl_label = 'Import M2I'
-	
-	filepath = bpy.props.StringProperty(name = 'File Path', description = 'Filepath used for importing the M2I file', maxlen = 1024, default = '')
-	check_existing = bpy.props.BoolProperty(name = 'Check Existing', description = 'Check and warn on overwriting existing files', default = True, options = {'HIDDEN'})
-	filter_glob = bpy.props.StringProperty(default = '*.m2i', options = {'HIDDEN'})
-	#filepath = StringProperty(default = '*.c3d;*.csv', options = {'HIDDEN'})
-	
+class M2IImporter(bpy.types.Operator, ImportHelper):
+	"""Import M2Mod itermediate file (.m2i)."""
+	bl_idname = "wow_tools.import_m2i"
+	bl_label = "Import M2I"
+
+	# ImportHelper mixin class uses this
+	filename_ext = ".m2i"
+
+	filter_glob: bpy.props.StringProperty(
+		default="*.m2i",
+		options={'HIDDEN'},
+		maxlen=1024,  # Max internal buffer length, longer would be clamped.
+	)
+
 	def execute(self, context):
-		FilePath = self.properties.filepath
-		if not FilePath.lower().endswith('.m2i'):
-			FilePath += '.m2i'
-		DoImport(FilePath)
+		DoImport(self.filepath)
 		return {'FINISHED'}
-	
-	def invoke(self, context, event):
-		WindowManager = context.window_manager
-		WindowManager.fileselect_add(self)
-		return {'RUNNING_MODAL'}

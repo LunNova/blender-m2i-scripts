@@ -162,8 +162,8 @@ def DoExport(FileName):
 	BoneMap = {}
 	bpy.ops.object.select_all(action = 'DESELECT')
 	#bpy.ops.object.select_name(name = BArmature.name, extend = False)
-	BArmature.select = True
-	bpy.context.scene.objects.active = BArmature
+	BArmature.select_set(True)
+	bpy.context.view_layer.objects.active = BArmature
 	isHidden = BArmature.hide
 	BArmature.hide = False
 	bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)

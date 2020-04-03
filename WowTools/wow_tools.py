@@ -8,14 +8,13 @@ import re
 #---===GUI===
 #******************************
 class OBJECT_PT_WoW(bpy.types.Panel):
-	
 	bl_label = 'WoW Tools'
 	#bl_space_type = 'PROPERTIES'
 	#bl_region_type = 'WINDOW'
 	#bl_context = 'scene'
-	bl_idname = 'WoWTools'
+	bl_idname = 'OBJECT_PT_wow_tools_hide_operators'
+	bl_region_type = 'UI'
 	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'TOOLS'
 	bl_category = 'WoW'
 	
 	def draw(self, context):
@@ -60,17 +59,17 @@ class OBJECT_PT_WoW(bpy.types.Panel):
 		row.operator('scene.wow_next_hair', text='', icon='RIGHTARROW')
 
 ### HIDE ###
-class OBJECT_OP_Hide_All(bpy.types.Operator):
+class OBJECT_OT_Hide_All(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_all'
 	bl_label = 'Hide All'
 	bl_description = 'Hide All.'
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			ob.hide = True
+			ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Attach(bpy.types.Operator):
+class OBJECT_OT_Hide_Attach(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_attachments'
 	bl_label = 'Hide Attachments'
 	bl_description = 'Hide Attachments.'
@@ -78,10 +77,10 @@ class OBJECT_OP_Hide_Attach(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'EMPTY' and ob.name.startswith('Attach'):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 
-class OBJECT_OP_Hide_Armature(bpy.types.Operator):
+class OBJECT_OT_Hide_Armature(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_armature'
 	bl_label = 'Hide Armature'
 	bl_description = 'Hide Armature.'
@@ -89,10 +88,10 @@ class OBJECT_OP_Hide_Armature(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'ARMATURE' and ob.name == 'Armature':
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 
-class OBJECT_OP_Hide_Camera(bpy.types.Operator):
+class OBJECT_OT_Hide_Camera(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_cameras'
 	bl_label = 'Hide Cameras'
 	bl_description = 'Hide Cameras.'
@@ -100,10 +99,10 @@ class OBJECT_OP_Hide_Camera(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'CAMERA':
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Face(bpy.types.Operator):
+class OBJECT_OT_Hide_Face(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_facial'
 	bl_label = 'Hide Facial'
 	bl_description = 'Hide Facial.'
@@ -111,10 +110,10 @@ class OBJECT_OP_Hide_Face(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(01|02|03|17)', ob.name):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Hair(bpy.types.Operator):
+class OBJECT_OT_Hide_Hair(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_hair'
 	bl_label = 'Hide Hairstyle'
 	bl_description = 'Hide Hairstyle.'
@@ -122,10 +121,10 @@ class OBJECT_OP_Hide_Hair(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(00)(?!00)', ob.name):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Armors(bpy.types.Operator):
+class OBJECT_OT_Hide_Armors(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_armors'
 	bl_label = 'Hide Armors'
 	bl_description = 'Hide Armors.'
@@ -133,10 +132,10 @@ class OBJECT_OP_Hide_Armors(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20|22).(?!1)', ob.name):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Cloak(bpy.types.Operator):
+class OBJECT_OT_Hide_Cloak(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_cloak'
 	bl_label = 'Hide Cloak'
 	bl_description = 'Hide Cloak.'
@@ -144,10 +143,10 @@ class OBJECT_OP_Hide_Cloak(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(12|15)', ob.name):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Hide_Body(bpy.types.Operator):
+class OBJECT_OT_Hide_Body(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_body'
 	bl_label = 'Hide Body'
 	bl_description = 'Hide Body.'
@@ -155,22 +154,22 @@ class OBJECT_OP_Hide_Body(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201|2301)', ob.name):
-				ob.hide = True
+				ob.hide_set(True)
 		return {'FINISHED'}
 		
 		
 ### SHOW ###
-class OBJECT_OP_Show_All(bpy.types.Operator):
+class OBJECT_OT_Show_All(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_all'
 	bl_label = 'Show All'
 	bl_description = 'Show All.'
 	
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
-			ob.hide = False
+			ob.hide_set(False)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Show_Attach(bpy.types.Operator):
+class OBJECT_OT_Show_Attach(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_attachments'
 	bl_label = 'Show Attachments'
 	bl_description = 'Show Attachments.'
@@ -178,10 +177,10 @@ class OBJECT_OP_Show_Attach(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'EMPTY' and ob.name.startswith('Attach'):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Show_Armature(bpy.types.Operator):
+class OBJECT_OT_Show_Armature(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_armature'
 	bl_label = 'Show Armature'
 	bl_description = 'Show Armature.'
@@ -189,10 +188,10 @@ class OBJECT_OP_Show_Armature(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'ARMATURE' and ob.name == 'Armature':
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Show_Camera(bpy.types.Operator):
+class OBJECT_OT_Show_Camera(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_cameras'
 	bl_label = 'Show Cameras'
 	bl_description = 'Show Cameras.'
@@ -200,10 +199,10 @@ class OBJECT_OP_Show_Camera(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'CAMERA':
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Show_Face(bpy.types.Operator):
+class OBJECT_OT_Show_Face(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_facial'
 	bl_label = 'Show Facial'
 	bl_description = 'Show Facial.'
@@ -211,10 +210,10 @@ class OBJECT_OP_Show_Face(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(01|02|03|17)', ob.name):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Show_Hair(bpy.types.Operator):
+class OBJECT_OT_Show_Hair(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_hair'
 	bl_label = 'Show Hairstyle'
 	bl_description = 'Show Hairstyle.'
@@ -222,10 +221,10 @@ class OBJECT_OP_Show_Hair(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(00)(?!00)', ob.name):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Show_Armors(bpy.types.Operator):
+class OBJECT_OT_Show_Armors(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_armors'
 	bl_label = 'Show Armors'
 	bl_description = 'Show Armors.'
@@ -233,10 +232,10 @@ class OBJECT_OP_Show_Armors(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(04|05|08|09|10|11|13|18|20|22).(?!1)', ob.name):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 		
-class OBJECT_OP_Show_Cloak(bpy.types.Operator):
+class OBJECT_OT_Show_Cloak(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_cloak'
 	bl_label = 'Show Cloak'
 	bl_description = 'Show Cloak.'
@@ -244,10 +243,10 @@ class OBJECT_OP_Show_Cloak(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(12|15)', ob.name):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Show_Body(bpy.types.Operator):
+class OBJECT_OT_Show_Body(bpy.types.Operator):
 	bl_idname = 'scene.wow_show_body'
 	bl_label = 'Show Body'
 	bl_description = 'Show Body.'
@@ -255,10 +254,10 @@ class OBJECT_OP_Show_Body(bpy.types.Operator):
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH' and re.search('^Mesh(0000|07|19|0401|0501|1301|2001|2201|2301)', ob.name):
-				ob.hide = False
+				ob.hide_set(False)
 		return {'FINISHED'}
 
-class OBJECT_OP_Next_Facial(bpy.types.Operator):
+class OBJECT_OT_Next_Facial(bpy.types.Operator):
 	bl_idname = 'scene.wow_next_facial'
 	bl_label = 'Next facial'
 	bl_description = 'Next facial'
@@ -281,9 +280,9 @@ class OBJECT_OP_Next_Facial(bpy.types.Operator):
 					if searchObj:
 						if searchObj.group(1) == "%04d" % workingIndex:
 							found = True
-							ob.hide = False
+							ob.hide_set(False)
 						else:
-							ob.hide = True
+							ob.hide_set(True)
 
 			if found:
 				break
@@ -294,7 +293,7 @@ class OBJECT_OP_Next_Facial(bpy.types.Operator):
 
 		return {'FINISHED'}
 
-class OBJECT_OP_Next_Hair(bpy.types.Operator):
+class OBJECT_OT_Next_Hair(bpy.types.Operator):
 	bl_idname = 'scene.wow_next_hair'
 	bl_label = 'Next hair'
 	bl_description = 'Next hair'
@@ -317,9 +316,9 @@ class OBJECT_OP_Next_Hair(bpy.types.Operator):
 					if searchObj:
 						if searchObj.group(1) == "%02d" % workingIndex:
 							found = True
-							ob.hide = False
+							ob.hide_set(False)
 						else:
-							ob.hide = True
+							ob.hide_set(True)
 
 			if found:
 				break
@@ -456,7 +455,7 @@ class Wow_Mesh_Props(bpy.types.PropertyGroup):
 				('16', 'GuildEmblemColor', ''),
 				('17', 'GuildBorderColor', ''),
 				('18', 'GuildEmblem', '')
-				];
+				]
 
 		Wow_Mesh_Props.TextureType0 = bpy.props.EnumProperty(name='Texture type 0', description='Texture type 0', items=textureTypeItems, default='-1')
 		Wow_Mesh_Props.TextureType1 = bpy.props.EnumProperty(name='Texture type 1', description='Texture type 1', items=textureTypeItems, default='0')

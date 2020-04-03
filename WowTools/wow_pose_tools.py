@@ -49,7 +49,7 @@ class OBJECT_OP_Apply_Modifiers(bpy.types.Operator):
 		#bpy.ops.object.select_all(action = 'DESELECT')
 		for ob in bpy.context.scene.objects:
 			if ob.type == 'MESH':
-				bpy.context.scene.objects.active = ob
+				bpy.context.view_layer.objects.active = ob
 				for mod in ob.modifiers:
 					if mod.type == 'ARMATURE' and mod.object == armature:
 						bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)

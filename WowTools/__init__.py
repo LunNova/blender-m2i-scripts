@@ -15,7 +15,6 @@ from .io_export_wow_m2i import *
 from .io_import_wow_m2i import *
 from .wow_tools import *
 from .wow_pose_tools import *
-from bpy_extras.io_utils import ImportHelper
 
 import bpy
 import re
@@ -45,34 +44,37 @@ def convert_properties(self):
 		props = obj.data.wow_props
 		SetupFromOldProperties(props)
 
-class ImportM2I(bpy.types.Operator, ImportHelper):
-	"""Import M2Mod itermediate file (.m2i)."""
-	bl_idname = "wow_toolls.import_m2i"
-	bl_label = "Import M2I"
-
-	# ImportHelper mixin class uses this
-	filename_ext = ".m2i"
-
-	filter_glob: bpy.props.StringProperty(
-		default="*.m2i",
-		options={'HIDDEN'},
-		maxlen=1024,  # Max internal buffer length, longer would be clamped.
-	)
-
-	def execute(self, context):
-		DoImport(self.filepath)
-		return {'FINISHED'}
-
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-	self.layout.operator(ImportM2I.bl_idname, text="M2Mod intermediate (.m2i)")
+	self.layout.operator(M2IImporter.bl_idname, text="M2Mod intermediate (.m2i)")
 
 classes = (
-	ImportM2I,
+	M2IImporter,
 	Wow_Camera_Props,
 	Wow_EditBone_Props,
 	Wow_Mesh_Props,
 	Wow_Scene_Props,
+	OBJECT_PT_WoW,
+	OBJECT_OT_Hide_All,
+	OBJECT_OT_Hide_Attach,
+	OBJECT_OT_Hide_Armature,
+	OBJECT_OT_Hide_Camera,
+	OBJECT_OT_Hide_Face,
+	OBJECT_OT_Hide_Hair,
+	OBJECT_OT_Hide_Armors,
+	OBJECT_OT_Hide_Cloak,
+	OBJECT_OT_Hide_Body,
+	OBJECT_OT_Show_All,
+	OBJECT_OT_Show_Attach,
+	OBJECT_OT_Show_Armature,
+	OBJECT_OT_Show_Camera,
+	OBJECT_OT_Show_Face,
+	OBJECT_OT_Show_Hair,
+	OBJECT_OT_Show_Armors,
+	OBJECT_OT_Show_Cloak,
+	OBJECT_OT_Show_Body,
+	OBJECT_OT_Next_Facial,
+	OBJECT_OT_Next_Hair,
 )
 
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
