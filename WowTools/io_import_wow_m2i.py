@@ -220,6 +220,8 @@ def DoImport(FileName):
 		BCamera.rotation_euler[2] = pi
 		
 		BCamera.data.angle = Camera.FieldOfView
+		BCamera.data.lens_unit = 'FOV'
+		
 		BCamera.data.clip_start = Camera.ClipNear
 		BCamera.data.clip_end = Camera.ClipFar
 		
