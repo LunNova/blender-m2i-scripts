@@ -9,13 +9,13 @@ import re
 #******************************
 class OBJECT_PT_WoW(bpy.types.Panel):
 	bl_label = 'WoW Tools'
-	#bl_space_type = 'PROPERTIES'
-	#bl_region_type = 'WINDOW'
-	#bl_context = 'scene'
 	bl_idname = 'OBJECT_PT_wow_tools_hide_operators'
 	bl_region_type = 'UI'
 	bl_space_type = 'VIEW_3D'
 	bl_category = 'WoW'
+	#bl_space_type = 'PROPERTIES'
+	#bl_region_type = 'WINDOW'
+	#bl_context = 'scene'
 	
 	def draw(self, context):
 		layout = self.layout.split()
@@ -129,10 +129,10 @@ class OBJECT_OT_Hide_Hair(bpy.types.Operator):
 				ob.hide_set(True)
 		return {'FINISHED'}
 
-class OBJECT_OP_Hide_Accessory(bpy.types.Operator):
+class OBJECT_OT_Hide_Accessory(bpy.types.Operator):
 	bl_idname = 'scene.wow_hide_accessory'
-	bl_label = 'Hide Accessories'
-	bl_description = 'Hide Accessories.'
+	bl_label = 'Hide Accessory'
+	bl_description = 'Hide Accessory.'
 
 	def execute(self, context):
 		for ob in bpy.context.scene.objects:
@@ -336,7 +336,7 @@ class OBJECT_OT_Next_Hair(bpy.types.Operator):
 
 		return {'FINISHED'}
 
-class OBJECT_OP_Next_Accessory(bpy.types.Operator):
+class OBJECT_OT_Next_Accessory(bpy.types.Operator):
 	bl_idname = 'scene.wow_next_accessory'
 	bl_label = 'Next accessory'
 	bl_description = 'Next accessory'
@@ -643,13 +643,13 @@ class Wow_EditBone_Props(bpy.types.PropertyGroup):
 
 class DATA_PT_wowproperties_mesh_props(bpy.types.Panel):
 	bl_label = "WoW Properies"
-	bl_idname = "wowtools.mesh_ops"
+	bl_idname = "DATA_PT_wowproperties_mesh_props"
 	bl_space_type = "PROPERTIES"
 	bl_region_type = "WINDOW"
 	bl_context = "object"
 
 	def draw(self, context):
-		layout = self.layout
+		layout = self.layout.column()
 
 		oTargetObject = context.active_object
 		oTargetBone = bpy.context.active_bone
@@ -844,10 +844,10 @@ class Wow_Scene_Props(bpy.types.PropertyGroup):
 	def unregister(cls):
 		del bpy.types.Scene.wow_props
 
-class BoneMigratePanel(bpy.types.Panel):
+class DATA_PT_BoneMigratePanel(bpy.types.Panel):
 	bl_label = "Bone migration"
+	bl_region_type = 'UI'
 	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'TOOLS'
 	bl_category = 'WoW'
 
 	def draw(self, context):
@@ -867,7 +867,7 @@ class OpOpenBoneFile(bpy.types.Operator, ImportHelper):
 	# ImportHelper mixin class uses this
 	filename_ext = ".txt"
 
-	filter_glob = bpy.props.StringProperty(
+	filter_glob : bpy.props.StringProperty(
 			default="*.txt",
 			options={'HIDDEN'},
 			)

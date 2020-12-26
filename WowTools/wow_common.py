@@ -71,8 +71,8 @@ class CMesh:
 			self.Texture2 = [0.0, 0.0]
 			self.Index = 0
 
-		def Compare(self, B):
-			return (self.Position == B.Position) and (self.Normal == B.Normal) and (self.Texture == B.Texture) and (self.Texture2 == B.Texture2)
+		def Compare(A, B):
+			return (A.Position == B.Position) and (A.Normal == B.Normal) and (A.Texture == B.Texture) and (A.Texture2 == B.Texture2)
 
 	class CTriangle:
 		def __init__(self):

@@ -327,10 +327,10 @@ def DoExport(FileName):
 	print('M2I exported successfully: ' + FileName)
 
 class M2IExporter(bpy.types.Operator):
-	'''Export a M2 Intermediate file'''
-	bl_idname: 'export.m2i'
-	bl_label: 'Export M2I'
-	
+	"""Export a M2 Intermediate file"""
+	bl_idname = "export.m2i"
+	bl_label = "Export M2I"
+
 	filepath: bpy.props.StringProperty(name = 'File Path', description = 'Filepath used for exporting the M2I file', maxlen = 1024, default = '')
 	check_existing: bpy.props.BoolProperty(name = 'Check Existing', description = 'Check and warn on overwriting existing files', default = True, options = {'HIDDEN'})
 	filter_glob: bpy.props.StringProperty(default = '*.m2i', options = {'HIDDEN'})
