@@ -182,15 +182,15 @@ def DoImport(FileName):
 		if Bone.Parent >= 0:
 			BEditBone = BArmature.data.edit_bones['Bone' + str('%03d' % Bone.Index)]
 			BEditBone.parent = BArmature.data.edit_bones['Bone' + str('%03d' % Bone.Parent)]
-	
-	
+
+
 	## 2.79
 	# bpy.context.scene.update() # update scene.
 	dg = bpy.context.evaluated_depsgraph_get()
 	dg.update()
-	## other 
+	## other
 	# bpy.context.view_layer.update()
-	
+
 	bpy.ops.object.mode_set(mode = 'OBJECT') # return to object mode.
 	
 	# instantiate attachments
@@ -227,6 +227,8 @@ def DoImport(FileName):
 		BCamera.rotation_euler[2] = pi
 		
 		BCamera.data.angle = Camera.FieldOfView
+		BCamera.data.lens_unit = 'FOV'
+
 		BCamera.data.clip_start = Camera.ClipNear
 		BCamera.data.clip_end = Camera.ClipFar
 		
@@ -267,7 +269,7 @@ def DoImport(FileName):
 			texFaces2.append([vertexA.Texture2[0], 1.0 - vertexA.Texture2[1]])
 			texFaces2.append([vertexB.Texture2[0], 1.0 - vertexB.Texture2[1]])
 			texFaces2.append([vertexC.Texture2[0], 1.0 - vertexC.Texture2[1]])
-			
+
 			faces.append((faceOffs + Triangle.A, faceOffs + Triangle.B, faceOffs + Triangle.C))
 
 		faceOffs += len(Mesh.VertexList)
@@ -282,16 +284,17 @@ def DoImport(FileName):
 		createTextureLayers(mesh, 'Texture', texFaces)
 		createTextureLayers(mesh, 'Texture2', texFaces2)
 
-		for Bone in BoneList:
-			BVertexGroup = profile_object.vertex_groups.new(name='Bone' + str('%03d' % Bone.Index))
 		for i, Vertex in enumerate(Mesh.VertexList):
 			BVertex = profile_object.data.vertices[i]
 			for j in range(0, 4):
 				if Vertex.BoneWeights[j] > 0:
-					BVertexGroup = profile_object.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
-					BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
+					key = 'Bone' + str('%03d' % Vertex.BoneIndices[j])
+					BVertexGroup = profile_object.vertex_groups.get(key)
+					if BVertexGroup == None:
+						BVertexGroup = profile_object.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
+						BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
 		mesh.update()
-		
+
 		BArmatureModifier = profile_object.modifiers.new('Armature', 'ARMATURE')
 		BArmatureModifier.object = BArmature
 		BArmatureModifier.use_bone_envelopes = False
