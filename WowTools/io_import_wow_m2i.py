@@ -292,7 +292,7 @@ def DoImport(FileName):
 					BVertexGroup = profile_object.vertex_groups.get(key)
 					if BVertexGroup == None:
 						BVertexGroup = profile_object.vertex_groups.new(name=key)
-						BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
+					BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
 		mesh.update()
 
 		BArmatureModifier = profile_object.modifiers.new('Armature', 'ARMATURE')

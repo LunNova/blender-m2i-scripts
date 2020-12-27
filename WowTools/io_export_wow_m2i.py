@@ -164,8 +164,8 @@ def DoExport(FileName):
 	#bpy.ops.object.select_name(name = BArmature.name, extend = False)
 	BArmature.select_set(True)
 	bpy.context.view_layer.objects.active = BArmature
-	isHidden = BArmature.hide
-	BArmature.hide = False
+	isHidden = BArmature.hide_get()
+	BArmature.hide_set(False)
 	bpy.ops.object.mode_set(mode = 'EDIT', toggle = False)
 	
 	for BBone in BArmature.data.edit_bones:
@@ -225,7 +225,7 @@ def DoExport(FileName):
 
 		CameraList.append(Camera)
 	
-	BArmature.hide = isHidden
+	BArmature.hide_set(isHidden)
 	
 	# open stream
 	File = open(FileName, 'wb')
