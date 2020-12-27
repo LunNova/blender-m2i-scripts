@@ -8,34 +8,31 @@ import re
 #---===GUI===
 #******************************
 class OBJECT_PT_WoW_Pose(bpy.types.Panel):
-    bl_label: "WoW Pose Tools"
-    bl_idname: "OBJECT_PT_wow_pose_armature_modifer_operators"
-    bl_region_type: 'UI'
-    bl_space_type: 'VIEW_3D'
-    bl_category: 'WoW'
+	bl_label = 'WoW Pose Tools'
+	bl_idname = 'OBJECT_PT_wow_pose_armature_modifer_operators'
+	bl_region_type = 'UI'
+	bl_space_type = 'VIEW_3D'
+	bl_category = 'WoW'
 #    bl_space_type: 'PROPERTIES'
-#    bl_region_type: 'WINDOW'
+#    bl_region_type = 'WINDOW'
 
-#    bl_context: "object"
+#    bl_context = "object"
 #    bl_options: {'DRAW_BOX'}
+	def draw(self, context):
+		layout = self.layout.split()
 
+		layout_col1 = layout.column()
 
-
-    def draw(self, context):
-        layout = self.layout.split()
-
-        layout_col1 = layout.column()
-
-        layout_col1.operator('scene.wow_create_modifiers', text='Create armature modifiers')
-        layout_col1.operator('scene.wow_apply_modifiers', text='Apply armature modifiers')
-        layout_col1.operator('scene.wow_apply_pose', text='Apply armature pose')
-        layout_col1.operator('scene.remove_unused_bones', text='Remove unused bones from armature')
+		layout_col1.operator('scene.wow_create_modifiers', text='Create armature modifiers')
+		layout_col1.operator('scene.wow_apply_modifiers', text='Apply armature modifiers')
+		layout_col1.operator('scene.wow_apply_pose', text='Apply armature pose')
+		layout_col1.operator('scene.remove_unused_bones', text='Remove unused bones from armature')
 
 
 class OBJECT_OT_Create_Modifiers(bpy.types.Operator):
-	bl_idname: 'scene.wow_create_modifiers'
-	bl_label: 'Create armature modifiers'
-	bl_description: 'Create armature modifiers on all meshes, which are children to selected armature.'
+	bl_idname = 'scene.wow_create_modifiers'
+	bl_label = 'Create armature modifiers'
+	bl_description = 'Create armature modifiers on all meshes, which are children to selected armature.'
 
 	@classmethod
 	def poll(cls, context):
@@ -60,9 +57,9 @@ class OBJECT_OT_Create_Modifiers(bpy.types.Operator):
 		return {'FINISHED'}
 
 class OBJECT_OT_Apply_Modifiers(bpy.types.Operator):
-	bl_idname: 'scene.wow_apply_modifiers'
-	bl_label: 'Apply armature modifiers'
-	bl_description: 'Apply armature modifiers to all meshes, which are children to selected armature.'
+	bl_idname = 'scene.wow_apply_modifiers'
+	bl_label = 'Apply armature modifiers'
+	bl_description = 'Apply armature modifiers to all meshes, which are children to selected armature.'
 
 	@classmethod
 	def poll(cls, context):
@@ -84,9 +81,9 @@ class OBJECT_OT_Apply_Modifiers(bpy.types.Operator):
 		return {'FINISHED'}
 
 class OBJECT_OT_Apply_Pose(bpy.types.Operator):
-	bl_idname: 'scene.wow_apply_pose'
-	bl_label: 'Apply armature pose'
-	bl_description: 'Apply currently selected armature pose as rest pose. Original Blender function is bugged - it does not respect attachments.'
+	bl_idname = 'scene.wow_apply_pose'
+	bl_label = 'Apply armature pose'
+	bl_description = 'Apply currently selected armature pose as rest pose. Original Blender function is bugged - it does not respect attachments.'
 
 	@classmethod
 	def poll(cls, context):
@@ -127,11 +124,11 @@ bpy.types.WindowManager.iWowTools_WeightThreshold = bpy.props.FloatProperty(
 	soft_max=1.0)
 
 class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
-	bl_label: "Weights cleanup"
-	bl_idname: "DATA_PT_wowtools_vertex_props"
-	bl_space_type: "PROPERTIES"
-	bl_region_type: "WINDOW"
-	bl_context: "data"
+	bl_label = "Weights cleanup"
+	bl_idname = "DATA_PT_wowtools_vertex_props"
+	bl_space_type = "PROPERTIES"
+	bl_region_type = "WINDOW"
+	bl_context = "data"
 
 	@classmethod
 	def poll(cls, context):
@@ -154,9 +151,9 @@ class DATA_PT_wowtools_vertex_props(bpy.types.Panel):
 
 class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 
-	bl_idname: "wowtools.cleanup_weights"
-	bl_label: "Wow Tools Bone Weight Cleanup"
-	bl_description: "Removes weights from vertices that are below threshold and remove unused vertex groups"
+	bl_idname = "wowtools.cleanup_weights"
+	bl_label = "Wow Tools Bone Weight Cleanup"
+	bl_description = "Removes weights from vertices that are below threshold and remove unused vertex groups"
 
 	@classmethod
 	def poll(cls, context):
@@ -189,9 +186,9 @@ class DATA_OT_wowtools_cleanup_weights(bpy.types.Operator):
 		return {'FINISHED'}
 
 class DATA_OT_wowtools_remove_unused_bones(bpy.types.Operator):
-	bl_idname: "scene.remove_unused_bones"
-	bl_label: "Wow Tools Remove Unused Bones"
-	bl_description: "Removes bones from armature that are not used in meshes"
+	bl_idname = "scene.remove_unused_bones"
+	bl_label = "Wow Tools Remove Unused Bones"
+	bl_description = "Removes bones from armature that are not used in meshes"
 
 	@classmethod
 	def poll(cls, context):

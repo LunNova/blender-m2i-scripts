@@ -291,7 +291,7 @@ def DoImport(FileName):
 					key = 'Bone' + str('%03d' % Vertex.BoneIndices[j])
 					BVertexGroup = profile_object.vertex_groups.get(key)
 					if BVertexGroup == None:
-						BVertexGroup = profile_object.vertex_groups['Bone' + str('%03d' % Vertex.BoneIndices[j])]
+						BVertexGroup = profile_object.vertex_groups.new(name=key)
 						BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
 		mesh.update()
 
