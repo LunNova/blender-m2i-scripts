@@ -294,6 +294,9 @@ def DoImport(FileName):
 						BVertexGroup = profile_object.vertex_groups.new(name=key)
 					BVertexGroup.add([i], float(Vertex.BoneWeights[j])/255.0, 'ADD')
 		mesh.update()
+		
+		for f in mesh.polygons:
+			f.use_smooth = True
 
 		BArmatureModifier = profile_object.modifiers.new('Armature', 'ARMATURE')
 		BArmatureModifier.object = BArmature
