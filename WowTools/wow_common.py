@@ -152,7 +152,8 @@ class CCamera:
 def RenderFlagsToSet(Flags):
 	s = set()
 
-	renderFlagItems = bpy.types.Mesh.bl_rna.properties['wow_props'].fixed_type.RenderFlags[1]['items']
+	from .wow_tools import renderFlagItems
+
 	for renderFlagTuple in renderFlagItems:
 		if (Flags & renderFlagTuple[4]) != 0:
 			s.add(renderFlagTuple[0])
@@ -162,7 +163,7 @@ def RenderFlagsToSet(Flags):
 def RenderFlagsFromSet(Set):
 	value = 0
 
-	renderFlagItems = bpy.types.Mesh.bl_rna.properties['wow_props'].fixed_type.RenderFlags[1]['items']
+	from .wow_tools import renderFlagItems
 	for renderFlagTuple in renderFlagItems:
 		if renderFlagTuple[0] in Set:
 			value |= renderFlagTuple[4]

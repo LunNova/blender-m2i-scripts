@@ -159,7 +159,7 @@ def DoImport(FileName):
 	File.close()
 
 	#deselect all objects.
-	bpy.ops.object.select_all(action = 'DESELECT')
+	#bpy.ops.object.select_all(action = 'DESELECT')
 	
 	# instantiate armature
 	bpy.ops.object.add(type = 'ARMATURE', enter_editmode = True, location = (0.0, 0.0, 0.0))

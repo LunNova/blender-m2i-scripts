@@ -160,7 +160,7 @@ def DoExport(FileName):
 	
 	# extract bones
 	BoneMap = {}
-	bpy.ops.object.select_all(action = 'DESELECT')
+	#bpy.ops.object.select_all(action = 'DESELECT')
 	#bpy.ops.object.select_name(name = BArmature.name, extend = False)
 	BArmature.select_set(True)
 	bpy.context.view_layer.objects.active = BArmature
